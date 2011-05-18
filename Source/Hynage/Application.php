@@ -1,0 +1,384 @@
+<?php
+namespace Hynage;
+use Hynage\MVC\Controller;
+
+class Application
+{
+    /**
+     * @var \Hynage\Application
+     */
+    private static $_instance = null;
+    
+    /**
+     * Holds the results of the bootstrapped components
+     * 
+     * @var array
+     */
+    protected $_components = array();
+    
+    /**
+     * @var \Hynage\Config
+     */
+    protected $_config = null;
+    
+    
+    /**
+     * An array of the components that are currently
+     * bootstrapped. Helps to detect recursion.
+     * 
+     * @var array
+     */
+    protected $_currentComponents = array();
+    
+    
+    /**
+     * Return the only instance of Hynage\Application
+     * 
+     * @param array|string|Hynage\Config|null $config
+     * @return \Hynage\Application
+     */
+    public static function getInstance($config = null)
+    {
+        if (!self::$_instance) {
+            $class = get_called_class();
+            self::$_instance = new $class($config);
+        }
+        
+        return self::$_instance;
+    }
+    
+    
+    /**
+     * Replace namespace characters with directory separators
+     * and try to include the file
+     *  
+     * @param string $className
+     */
+    public static function loadClass($className)
+    {
+        $path = str_replace('\\', DIRECTORY_SEPARATOR, $className) . '.php';
+        
+        include_once $path;
+    }
+    
+
+    /**
+     * Put errors into an ErrorException object an throw it at the clown.
+     */
+    public function handleError($severity, $message, $filename, $line)
+    {
+        if (error_reporting() == 0) {
+            return;
+        }
+        
+        if (error_reporting() & $severity) {
+            throw new \ErrorException($message, 0, $severity, $filename, $line);
+        } 
+    }
+
+
+    public function handleException(\Exception $e)
+    {
+        $request = new Controller\Request('/error/internal');
+        $request->setParam('exception', $e);
+
+        $this->bootstrap('Frontcontroller')->dispatch($request);
+    }
+    
+    
+    /**
+     * Private constructor
+     * 
+     * @param array|Hynage\Config|string|null $config
+     */
+    private function __construct($config)
+    {
+        if (null !== $config) {
+            $this->setConfig($config);
+        }
+    }
+    
+    
+    /**
+     * Bootstrap one, several or all components. A component is a protected
+     * method of this class starting with '_init'. Each component is only
+     * bootstrapped once.
+     *  
+     * @param string|array|null $components
+     * @return mixed
+     */
+    public function bootstrap($components = null)
+    {
+        if (null === $components) {
+            $components = $this->_getAllComponents();
+        } elseif (is_string($components)) {
+            $components = array($components);
+        } elseif (!is_array($components)) {
+            throw new Exception('Argument "components" must either be a string, an array or null to bootstrap all components.');
+        }
+        
+        $components = array_map('strtolower', $components);
+        $components = array_unique($components);
+        
+        foreach ($components as $component) {
+            $method = '_init' . ucfirst($component);
+            
+            // Component is already being bootstrapped
+            if (array_key_exists($component, $this->_currentComponents)) {
+                throw new Exception('Recursion detected.');
+            }
+            
+            // Component already bootstrapped
+            if (array_key_exists($component, $this->_components)) {
+                continue;
+            }
+            
+            // Check if the method exists
+            if (!method_exists($this, $method)) {
+                throw new Exception('Invalid component "' . $component . '" detected.');
+            }
+            
+            $this->_currentComponents[$component] = true;
+            $this->_components[$component] = $this->$method();
+            unset($this->_currentComponents[$component]);
+        }
+        
+        $results = array();
+        foreach ($components as $component) {
+            $results[$component] = $this->_components[$component];
+        }
+        
+        return 1 == count($results) ? current($results) : $results;
+    }
+    
+    
+    public function dispatch(Controller\Request $request = null)
+    {
+        $this->bootstrap('frontcontroller')->dispatch($request);
+    }
+    
+    
+    /**
+     * Set the configuration
+     * 
+     * @param array|string|Hynage\Config $config
+     * @return \Hynage\Application
+     */
+    public function setConfig($config)
+    {
+        $this->bootstrap('autoloader');
+        
+        if (is_array($config)) {
+            $config = new Config($config);
+        } elseif (is_string($config)) {
+            $path = $config;
+            
+            if (!file_exists($path)) {
+                throw new Config\Exception('Config file "' . $path . '" does not exist.');
+            }
+            
+            $config = require $path;
+            if (is_array($config)) {
+                $config = new Config($config);
+            } elseif (!$config instanceof Config) {
+                throw new Config\Exception('Config file "' . realpath($path) . '" must return an array or an instance of Hynage\Config.');
+            }
+        } elseif (!$config instanceof Config) {
+            throw new Config\Exception('Config must be an array, an instance of Hynage\Config or a string to a config file.');
+        }
+        
+        $this->_config = $config;
+        
+        return $this;
+    }
+    
+    
+    /**
+     * Return configuration
+     * 
+     * @return \Hynage\Config
+     */
+    public function getConfig()
+    {
+        return $this->_config;
+    }
+    
+    
+    /**
+     * Bootstrap for the setup application
+     */
+    protected function _initSetup()
+    {
+        $this->bootstrap('autoloader');
+    }
+    
+    
+    /**
+     * Init the autoloader
+     * 
+     * @return null
+     */
+    protected function _initAutoloader()
+    {
+        $this->bootstrap('includepath');
+        
+        spl_autoload_register(array(get_called_class(), 'loadClass'));
+    }
+    
+    
+    protected function _initPathconstants()
+    {
+        define('HYNAGE_PATH', realpath(__DIR__ . '/..'));
+    }
+    
+    
+    protected function _initIncludepath()
+    {
+        $this->bootstrap('pathconstants');
+        
+        set_include_path(
+            HYNAGE_PATH . PATH_SEPARATOR .
+            get_include_path()
+        );
+    }
+    
+    
+    /**
+     * Set our own error handler
+     */
+    protected function _initErrorHandler()
+    {
+        set_error_handler(array($this, 'handleError'));
+    }
+
+
+    /**
+     * Set our own exception handler
+     */
+    protected function _initExceptionHandler()
+    {
+        set_exception_handler(array($this, 'handleException'));
+    }
+    
+    
+    /**
+     * Init the database connection
+     * 
+     * @return PDO
+     */
+    protected function _initDatabase()
+    {
+        $dsn = $this->getConfig()->database->dsn;
+        
+        return new Database\Connection($dsn);
+    }
+    
+    
+    /**
+     * Check the config file for a "php settings" section.
+     * The does a quick validation and sets them.
+     * 
+     * @return array All changed settings with their new value
+     */
+    protected function _initPhpsettings()
+    {
+        $settings = $this->getConfig()->phpSettings;
+        if (!$settings) {
+            return array();
+        }
+        
+        $allowedKeys = array_keys(ini_get_all());
+        $changedSettings = array();
+        
+        foreach ($settings as $key => $value) {
+            if (in_array($key, $allowedKeys)) {
+                ini_set($key, $value);
+                $changedSettings[$key] = $value;
+            }
+        }
+        
+        return $changedSettings;
+    }
+    
+    
+    /**
+     * Start the session
+     */
+    protected function _initSession()
+    {
+        session_start();
+    }
+    
+    
+    /**
+     * Init the auth handler
+     */
+    protected function _initAuth()
+    {
+        $this->bootstrap('Session');
+        
+        $auth = Auth::getInstance();
+        
+        // Check for the case that the current user has a session key for an
+        // user id but the corresponding user is non-existent.
+        if ($auth->hasIdentity() && !$auth->hasIdentity(true)) {
+            $auth->clearIdentity();
+            
+            $rsp = new Controller\Response();
+            $rsp->setHeader('location', '/error/invalid-session', 302);
+            $rsp->send(true);
+        }
+        
+        return $auth;
+    }
+    
+    
+    /**
+     * Init the front controller and set the default controller
+     * and default action.
+     * 
+     * @return \Hynage\MVC\Controller\Front
+     */
+    protected function _initFrontcontroller()
+    {
+        $this->bootstrap('autoloader');
+        
+        $config = $this->getConfig();
+        
+        $front = new MVC\Controller\Front();
+        $front->setController($config->get('frontController.defaults.controller', 'index'))
+              ->setAction($config->get('frontController.defaults.action', 'index'));
+        
+        return $front;
+    }
+    
+    
+    /**
+     * Scan this class for all methods that are protected and start with '_init'.
+     * 
+     * @return array
+     */
+    protected function _getAllComponents()
+    {
+        $class   = new \ReflectionClass(get_class($this));
+        $methods = $class->getMethods(\ReflectionMethod::IS_PROTECTED);
+        
+        $components = array();
+        foreach ($methods as $method) {
+            $method = $method->name;
+            
+            if (0 === strpos($method, '_init')) {
+                $components[] = substr($method, strlen('_init'));
+            }
+        }
+        
+        return $components;
+    }
+    
+    
+    /**
+     * Private cloner
+     */
+    private function __clone()
+    {}
+}
