@@ -1,6 +1,7 @@
 <?php
 namespace Hynage;
-use Hynage\MVC\Controller;
+use Hynage\MVC\Controller,
+    Hynage\Autoloading;
 
 class Application
 {
@@ -15,20 +16,24 @@ class Application
      * @var array
      */
     protected $_components = array();
+
+    /**
+     * An array of the components that are currently
+     * bootstrapped. Helps to detect recursion.
+     *
+     * @var array
+     */
+    protected $_currentComponents = array();
     
     /**
      * @var \Hynage\Config
      */
     protected $_config = null;
-    
-    
+
     /**
-     * An array of the components that are currently
-     * bootstrapped. Helps to detect recursion.
-     * 
-     * @var array
+     * @var \SplObjectStorage
      */
-    protected $_currentComponents = array();
+    protected $_autoloaders = null;
     
     
     /**
@@ -47,20 +52,6 @@ class Application
         return self::$_instance;
     }
     
-    
-    /**
-     * Replace namespace characters with directory separators
-     * and try to include the file
-     *  
-     * @param string $className
-     */
-    public static function loadClass($className)
-    {
-        $path = str_replace('\\', DIRECTORY_SEPARATOR, $className) . '.php';
-        
-        include_once $path;
-    }
-    
 
     /**
      * Put errors into an ErrorException object an throw it at the clown.
@@ -77,8 +68,15 @@ class Application
     }
 
 
+    /**
+     * @param \Exception $e
+     */
     public function handleException(\Exception $e)
     {
+        if (php_sapi_name() == 'cli') {
+            exit((string)$e);
+        }
+
         $request = new Controller\Request('/error/internal');
         $request->setParam('exception', $e);
 
@@ -93,68 +91,11 @@ class Application
      */
     private function __construct($config)
     {
+        $this->_autoloaders = new \SplObjectStorage();
+
         if (null !== $config) {
             $this->setConfig($config);
         }
-    }
-    
-    
-    /**
-     * Bootstrap one, several or all components. A component is a protected
-     * method of this class starting with '_init'. Each component is only
-     * bootstrapped once.
-     *  
-     * @param string|array|null $components
-     * @return mixed
-     */
-    public function bootstrap($components = null)
-    {
-        if (null === $components) {
-            $components = $this->_getAllComponents();
-        } elseif (is_string($components)) {
-            $components = array($components);
-        } elseif (!is_array($components)) {
-            throw new Exception('Argument "components" must either be a string, an array or null to bootstrap all components.');
-        }
-        
-        $components = array_map('strtolower', $components);
-        $components = array_unique($components);
-        
-        foreach ($components as $component) {
-            $method = '_init' . ucfirst($component);
-            
-            // Component is already being bootstrapped
-            if (array_key_exists($component, $this->_currentComponents)) {
-                throw new Exception('Recursion detected.');
-            }
-            
-            // Component already bootstrapped
-            if (array_key_exists($component, $this->_components)) {
-                continue;
-            }
-            
-            // Check if the method exists
-            if (!method_exists($this, $method)) {
-                throw new Exception('Invalid component "' . $component . '" detected.');
-            }
-            
-            $this->_currentComponents[$component] = true;
-            $this->_components[$component] = $this->$method();
-            unset($this->_currentComponents[$component]);
-        }
-        
-        $results = array();
-        foreach ($components as $component) {
-            $results[$component] = $this->_components[$component];
-        }
-        
-        return 1 == count($results) ? current($results) : $results;
-    }
-    
-    
-    public function dispatch(Controller\Request $request = null)
-    {
-        $this->bootstrap('frontcontroller')->dispatch($request);
     }
     
     
@@ -167,7 +108,7 @@ class Application
     public function setConfig($config)
     {
         $this->bootstrap('autoloader');
-        
+
         if (is_array($config)) {
             $config = new Config($config);
         } elseif (is_string($config)) {
@@ -188,6 +129,18 @@ class Application
         }
         
         $this->_config = $config;
+
+        // User include paths
+        $userIncludePaths = $config->get('includePaths', array())->getData();
+        if (!empty($userIncludePaths)) {
+            $this->addIncludePath($userIncludePaths);
+        }
+
+        // User autoloaders
+        $callbacks = $this->getConfig()->get('autoloaders', array())->getData();
+        foreach ($callbacks as $loader) {
+            $this->addAutoloader($loader);
+        }
         
         return $this;
     }
@@ -202,44 +155,154 @@ class Application
     {
         return $this->_config;
     }
-    
-    
+
+
     /**
-     * Bootstrap for the setup application
+     * Add one or multiple include paths
+     *
+     * @param string|array $userPaths
+     * @return \Hynage\Application
      */
-    protected function _initSetup()
+    public function addIncludePath($userPaths)
     {
-        $this->bootstrap('autoloader');
+        $paths = explode(PATH_SEPARATOR, get_include_path());
+
+        foreach ((array)$userPaths as $userPath) {
+            $paths[] = $userPath;
+        }
+
+        set_include_path(join(PATH_SEPARATOR, $paths));
+
+        return $this;
+    }
+
+
+    /**
+     * Add an autoloader
+     *
+     * @param \Hynage\Autoloading\Loadable $loader
+     * @return \Hynage\Application
+     */
+    public function addAutoloader(Autoloading\Loadable $loader)
+    {
+        $this->_autoloaders->attach($loader);
+        return $this;
+    }
+
+
+    /**
+     * Try to load a class by the defined autoloaders
+     *
+     * @param string $class
+     */
+    public function loadClass($class)
+    {
+        foreach ($this->_autoloaders as $loader) {
+            if ($loader->canLoad($class)) {
+                return $loader->load($class);
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Bootstrap one, several or all components. A component is a protected
+     * method of this class starting with '_init'. Each component is only
+     * bootstrapped once.
+     *
+     * @param string|array|null $components
+     * @return mixed
+     */
+    public function bootstrap($components = null)
+    {
+        if (null === $components) {
+            $components = $this->_getAllComponents();
+        } elseif (is_string($components)) {
+            $components = array($components);
+        } elseif (!is_array($components)) {
+            throw new Exception('Argument "components" must either be a string, an array or null to bootstrap all components.');
+        }
+
+        $components = array_map('strtolower', $components);
+        $components = array_unique($components);
+
+        foreach ($components as $component) {
+            $method = '_init' . ucfirst($component);
+
+            // Component is already being bootstrapped
+            if (array_key_exists($component, $this->_currentComponents)) {
+                throw new Exception('Recursion detected.');
+            }
+
+            // Component already bootstrapped
+            if (array_key_exists($component, $this->_components)) {
+                continue;
+            }
+
+            // Check if the method exists
+            if (!method_exists($this, $method)) {
+                throw new Exception('Invalid component "' . $component . '" detected.');
+            }
+
+            $this->_currentComponents[$component] = true;
+            $this->_components[$component] = $this->$method();
+            unset($this->_currentComponents[$component]);
+        }
+
+        $results = array();
+        foreach ($components as $component) {
+            $results[$component] = $this->_components[$component];
+        }
+
+        return 1 == count($results) ? current($results) : $results;
+    }
+
+
+    /**
+     * Dispatch a request
+     *
+     * @param \Hynage\Controller\Request|null $request
+     */
+    public function dispatch(Controller\Request $request = null)
+    {
+        $this->bootstrap('frontcontroller')->dispatch($request);
     }
     
     
     /**
      * Init the autoloader
-     * 
-     * @return null
      */
     protected function _initAutoloader()
     {
         $this->bootstrap('includepath');
+
+        require 'Hynage/Autoloading/Loadable.php';
+        require 'Hynage/Autoloading/NamespaceToDirectory.php';
+        $this->addAutoloader(new Autoloading\NamespaceToDirectory('Hynage'));
         
         spl_autoload_register(array(get_called_class(), 'loadClass'));
     }
     
-    
+
+    /**
+     * Set the path constants
+     */
     protected function _initPathconstants()
     {
         define('HYNAGE_PATH', realpath(__DIR__ . '/..'));
     }
     
-    
+
+    /**
+     * Prepare the include path
+     */
     protected function _initIncludepath()
     {
         $this->bootstrap('pathconstants');
-        
-        set_include_path(
-            HYNAGE_PATH . PATH_SEPARATOR .
-            get_include_path()
-        );
+
+        $this->addIncludePath(HYNAGE_PATH);
     }
     
     
