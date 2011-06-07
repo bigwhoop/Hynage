@@ -14,7 +14,7 @@ class NamespaceToDirectory implements Loadable
      */
     public function __construct($namespace)
     {
-        $this->_namespace = (string)$namespace;
+        $this->_namespace = trim($namespace, '\\');
     }
 
 
