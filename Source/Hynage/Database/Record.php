@@ -24,6 +24,23 @@ abstract class Record
     }
 
 
+    static public function findWhere($sqlWhere, array $params = array(), $singleRecord = false)
+    {
+        $db = Connection::getCurrent();
+        
+        $sql = 'SELECT * '
+             . 'FROM `%s` '
+             . 'WHERE %s';
+
+        $sql = sprintf($sql, static::getTableName(), $sqlWhere);
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+
+        return static::_hydrate($stmt, $singleRecord);
+    }
+
+
     static public function findOneBy($field, $value, $load = false)
     {
         if (empty($value)) {

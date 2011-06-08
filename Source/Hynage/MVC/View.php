@@ -89,7 +89,7 @@ class View
         if (!is_readable($path)) {
             throw new View\Exception('Script "' . $script . '" was not found or could not be read at base path "' . $basePath . '".');
         }
-        
+
         ob_start();
         include $path;
         $content = ob_get_clean();

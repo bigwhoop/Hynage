@@ -331,9 +331,8 @@ class Application
      */
     protected function _initDatabase()
     {
-        $dsn = $this->getConfig()->database->dsn;
-        
-        return new Database\Connection($dsn);
+        $uri = $this->getConfig()->database->uri;
+        return new Database\Connection($uri);
     }
     
     
