@@ -17,7 +17,7 @@ class Response
     /**
      * Clear all headers
      * 
-     * @return \Hynage\HTTP\Respone
+     * @return \Hynage\HTTP\Response
      */
     public function clearHeaders()
     {
@@ -34,7 +34,7 @@ class Response
      * @param string $value
      * @param int $code
      * @param bool $replace
-     * @return \Hynage\HTTP\Respone
+     * @return \Hynage\HTTP\Response
      */
     public function setHeader($key, $value, $code = 200, $replace = true)
     {
@@ -51,7 +51,7 @@ class Response
     /**
      * Clear the body content
      * 
-     * @return \Hynage\HTTP\Respone
+     * @return \Hynage\HTTP\Response
      */
     public function clearBody()
     {
@@ -65,7 +65,7 @@ class Response
      * Set the body content
      * 
      * @param string $content
-     * @return \Hynage\HTTP\Respone
+     * @return \Hynage\HTTP\Response
      */
     public function setBody($content)
     {
@@ -91,7 +91,7 @@ class Response
      * Append content to the body
      * 
      * @param string $content
-     * @return \Hynage\HTTP\Respone
+     * @return \Hynage\HTTP\Response
      */
     public function appendBody($content)
     {
@@ -108,7 +108,7 @@ class Response
      * 2. Echo content
      * 
      * @param bool $exit
-     * @return \Hynage\HTTP\Respone
+     * @return \Hynage\HTTP\Response
      */
     public function send($exit = false)
     {

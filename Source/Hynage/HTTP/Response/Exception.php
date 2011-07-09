@@ -1,5 +1,5 @@
 <?php
-namespace Hynage\HTTP\Respone;
+namespace Hynage\HTTP\Response;
 use Hynage;
 
 class Exception extends Hynage\Exception

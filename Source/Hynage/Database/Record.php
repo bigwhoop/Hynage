@@ -104,14 +104,24 @@ abstract class Record
         return self::_hydrate($stmt);
     }
     
-    
+
+    /**
+     * Puts an data into Model objects of the called class.
+     *
+     * @param \PDOStatement|array $data
+     * @param bool $singleRecord
+     * @return \Hynage\Database\Record|\Hynage\Database\RecordCollection
+     * @throws \InvalidArgumentException
+     */
     protected static function _hydrate($data, $singleRecord = false)
     {
         if ($data instanceof \PDOStatement) {
             $data = $data->fetchAll(\PDO::FETCH_ASSOC);
+        } elseif (!is_array($data)) {
+            throw new \InvalidArgumentException('First argument must either be an array or an instance of \PDOStatement.');
         }
         
-        $records = array();
+        $records = new RecordCollection();
         $class = get_called_class();
         
         foreach ((array)$data as $values) {
@@ -122,7 +132,7 @@ abstract class Record
             $obj = new $class;
             $obj->populate($values);
             
-            $records[] = $obj;
+            $records->add($obj);
         }
         
         // Only one record is expected. Or false if none found.
@@ -218,7 +228,7 @@ abstract class Record
                 $attributes['default']   = $property->getAnnotation('HynageColumnDefault');
             }
             
-            $fields[] = new Hynage\Database\Record\Field($name, $propertyName, $type, $length, $attributes);
+            $fields[] = new Record\Field($name, $propertyName, $type, $length, $attributes);
         }
         
         return $fields;
@@ -276,6 +286,34 @@ abstract class Record
         
         return $sql;
     }
+
+
+    public function getValue(Record\Field $field)
+    {
+        $property = $field->getProperty();
+
+        if (!isset($this->$property)) {
+            throw new Record\InvalidDefinitionException('No such field: ' . $field->getName());
+        }
+
+        return $this->$property;
+    }
+
+
+    /**
+     * Export this record. Default is array.
+     *
+     * @param \Hynage\Database\Record\ExportStrategy\ExportStrategy $strategy
+     * @return mixed
+     */
+    public function export(Record\ExportStrategy\ExportStrategy $strategy = null)
+    {
+        if (!$strategy) {
+            $strategy = new Record\ExportStrategy\ArrayStrategy();
+        }
+
+        return $strategy->exportRecord($this);
+    }
     
     
     /**
@@ -299,6 +337,9 @@ abstract class Record
                 switch ($field->getType())
                 {
                     case 'INTEGER':
+                    case 'SMALLINT':
+                    case 'MEDIUMINT':
+                    case 'BIGINT':
                         $value = (int)$value;
                         break;
                         

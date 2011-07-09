@@ -27,9 +27,14 @@ class Front
     protected $_request = null;
     
     /**
-     * @var \Hynage\HTTP\Respone
+     * @var \Hynage\HTTP\Response
      */
     protected $_response = null;
+
+    /**
+     * @var bool
+     */
+    protected $_renderLayout = true;
 
 
     /**
@@ -181,7 +186,7 @@ class Front
     /**
      * Set the response
      * 
-     * @param \Hynage\HTTP\Respone $response
+     * @param \Hynage\HTTP\Response $response
      * @return \Hynage\MVC\Controller\Front
      */
     public function setResponse(Response $response)
@@ -196,7 +201,7 @@ class Front
      * Return the response. If none was set, a default response
      * object is created.
      * 
-     * @return \Hynage\HTTP\Respone
+     * @return \Hynage\HTTP\Response
      */
     public function getResponse()
     {
@@ -212,7 +217,7 @@ class Front
      * Dispatch a request and send the response
      * 
      * @param \Hynage\HTTP\Request $request
-     * @param \Hynage\HTTP\Respone $response
+     * @param \Hynage\HTTP\Response $response
      * @return \Hynage\MVC\Controller\Front
      */
     public function dispatch(Request $request = null, Response $response = null)
@@ -288,16 +293,44 @@ class Front
         $controller->postDispatch();
         
         // Prepare the layout
-        $layoutConfig = $config->get('layout', new Hynage\Config());
-        $layout = new Layout($layoutConfig);
-        
-        // Wrap the layout around the content
-        $layout->setContent($response->getBody());
-        $response->setBody($layout->render(false));
+        if ($this->_renderLayout) {
+            $layoutConfig = $config->get('layout', new Hynage\Config());
+            $layout = new Layout($layoutConfig);
+
+            // Wrap the layout around the content
+            $layout->setContent($response->getBody());
+            $response->setBody($layout->render(false));
+        }
         
         // Send the response
         $response->send();
         
+        return $this;
+    }
+
+
+    /**
+     * Enable rendering of the layout
+     *
+     * @return \Hynage\MVC\Controller\Front
+     */
+    public function enableLayout()
+    {
+        $this->_renderLayout = true;
+
+        return $this;
+    }
+
+
+    /**
+     * Disable rendering of the layout
+     *
+     * @return \Hynage\MVC\Controller\Front
+     */
+    public function disableLayout()
+    {
+        $this->_renderLayout = false;
+
         return $this;
     }
 }

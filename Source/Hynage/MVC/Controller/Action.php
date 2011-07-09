@@ -17,7 +17,7 @@ abstract class Action
     protected $_request = null;
     
     /**
-     * @var \Hynage\HTTP\Respone
+     * @var \Hynage\HTTP\Response
      */
     protected $_response = null;
     
@@ -74,7 +74,7 @@ abstract class Action
     /**
      * Return the response object
      * 
-     * @return \Hynage\HTTP\Respone
+     * @return \Hynage\HTTP\Response
      */
     public function getResponse()
     {
