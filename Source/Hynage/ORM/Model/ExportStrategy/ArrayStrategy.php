@@ -3,7 +3,7 @@ namespace Hynage\ORM\Model\ExportStrategy;
 use Hynage\ORM\Model\Record,
     Hynage\ORM\Model\RecordCollection;
 
-class ArrayStrategy implements Exportable
+class ArrayStrategy implements Exporting
 {
     public function exportRecord(Record $obj)
     {

@@ -12,6 +12,15 @@ class Response
      * @var string
      */
     protected $_body = '';
+
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->setContentType('text/html; charset=utf-8');
+    }
     
     
     /**
@@ -44,6 +53,19 @@ class Response
             'code'    => (int)$code,
         );
         
+        return $this;
+    }
+
+
+    /**
+     * Set the Content Type of this response
+     *
+     * @return \Hynage\HTTP\Response
+     */
+    public function setContentType($value)
+    {
+        $this->setHeader('Content-Type', $value);
+
         return $this;
     }
     

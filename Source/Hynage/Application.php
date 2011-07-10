@@ -130,6 +130,14 @@ class Application
         
         $this->_config = $config;
 
+        // Constants
+        $constants = $config->get('constants', array())->getData();
+        if (!empty($constants)) {
+            foreach ($constants as $key => $value) {
+                define($key, $value);
+            }
+        }
+
         // User include paths
         $userIncludePaths = $config->get('includePaths', array())->getData();
         if (!empty($userIncludePaths)) {

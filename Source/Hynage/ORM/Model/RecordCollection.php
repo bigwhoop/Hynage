@@ -1,7 +1,7 @@
 <?php
 namespace Hynage\ORM\Model;
 
-class RecordCollection implements \Iterator, \Countable
+class RecordCollection implements ExportStrategy\Exportable, \Iterator, \Countable
 {
     private $data = array();
 
@@ -21,15 +21,25 @@ class RecordCollection implements \Iterator, \Countable
 
         return $this;
     }
+    
+
+    public function get($key, $default = null)
+    {
+        if (array_key_exists($key, $this->data)) {
+            return $this->data[$key];
+        }
+        
+        return $default;
+    }
 
 
     /**
      * Export this record collection. Default is array.
      *
-     * @param \Hynage\ORM\Model\ExportStrategy\Exportable $strategy
+     * @param \Hynage\ORM\Model\ExportStrategy\Exporting $strategy
      * @return mixed
      */
-    public function export(ExportStrategy\Exportable $strategy = null)
+    public function export(ExportStrategy\Exporting $strategy = null)
     {
         if (!$strategy) {
             $strategy = new ExportStrategy\ArrayStrategy();

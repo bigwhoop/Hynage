@@ -4,7 +4,7 @@ use Hynage,
     Hynage\Reflection,
     Hynage\Database\Connection as Connection;
 
-abstract class Record
+abstract class Record implements ExportStrategy\Exportable
 {
     /**
      * Find records by an SQL statement
@@ -304,10 +304,10 @@ abstract class Record
     /**
      * Export this record. Default is array.
      *
-     * @param \Hynage\ORM\Model\ExportStrategy\Exportable $strategy
+     * @param \Hynage\ORM\Model\ExportStrategy\Exporting $strategy
      * @return mixed
      */
-    public function export(ExportStrategy\Exportable $strategy = null)
+    public function export(ExportStrategy\Exporting $strategy = null)
     {
         if (!$strategy) {
             $strategy = new ExportStrategy\ArrayStrategy();
