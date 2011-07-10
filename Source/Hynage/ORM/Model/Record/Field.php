@@ -1,5 +1,5 @@
 <?php
-namespace Hynage\Database\Record;
+namespace Hynage\ORM\Model\Record;
 use Hynage;
 
 class Field

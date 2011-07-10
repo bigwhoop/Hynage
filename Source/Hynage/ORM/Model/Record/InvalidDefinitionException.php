@@ -1,5 +1,5 @@
 <?php
-namespace Hynage\Database\Record;
+namespace Hynage\ORM\Model\Record;
 
 class InvalidDefinitionException extends \Hynage\Exception
 {}

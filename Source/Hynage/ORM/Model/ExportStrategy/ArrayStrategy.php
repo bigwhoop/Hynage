@@ -1,9 +1,9 @@
 <?php
-namespace Hynage\Database\Record\ExportStrategy;
-use Hynage\Database\Record,
-    Hynage\Database\RecordCollection;
+namespace Hynage\ORM\Model\ExportStrategy;
+use Hynage\ORM\Model\Record,
+    Hynage\ORM\Model\RecordCollection;
 
-class ArrayStrategy implements ExportStrategy
+class ArrayStrategy implements Exportable
 {
     public function exportRecord(Record $obj)
     {

@@ -1,7 +1,8 @@
 <?php
-namespace Hynage\Database;
-use Hynage;
-use Hynage\Reflection;
+namespace Hynage\ORM\Model;
+use Hynage,
+    Hynage\Reflection,
+    Hynage\Database\Connection as Connection;
 
 abstract class Record
 {
@@ -11,7 +12,7 @@ abstract class Record
      * @param string $sql
      * @param array $params
      * @param bool $singleRecord
-     * @return array|Hynage\Database\Record|false
+     * @return array|Hynage\ORM\Model\Record|false
      */
     public static function find($sql, array $params = array(), $singleRecord = false)
     {
@@ -77,7 +78,7 @@ abstract class Record
      * 
      * @param int|array $id
      * @param bool $load
-     * @return \Hynage\Database\Record|false
+     * @return \Hynage\ORM\Model\Record|false
      */
     public static function findOne($id, $load = false)
     {
@@ -110,7 +111,7 @@ abstract class Record
      *
      * @param \PDOStatement|array $data
      * @param bool $singleRecord
-     * @return \Hynage\Database\Record|\Hynage\Database\RecordCollection
+     * @return \Hynage\ORM\Model\Record|\Hynage\ORM\Model\RecordCollection
      * @throws \InvalidArgumentException
      */
     protected static function _hydrate($data, $singleRecord = false)
@@ -179,7 +180,7 @@ abstract class Record
     /**
      * Return the primary key field name
      * 
-     * @return \Hynage\Database\Record\Field|false
+     * @return \Hynage\ORM\Model\Record\Field|false
      */
     public static function getPrimaryKeyField()
     {
@@ -303,13 +304,13 @@ abstract class Record
     /**
      * Export this record. Default is array.
      *
-     * @param \Hynage\Database\Record\ExportStrategy\ExportStrategy $strategy
+     * @param \Hynage\ORM\Model\ExportStrategy\Exportable $strategy
      * @return mixed
      */
-    public function export(Record\ExportStrategy\ExportStrategy $strategy = null)
+    public function export(ExportStrategy\Exportable $strategy = null)
     {
         if (!$strategy) {
-            $strategy = new Record\ExportStrategy\ArrayStrategy();
+            $strategy = new ExportStrategy\ArrayStrategy();
         }
 
         return $strategy->exportRecord($this);
@@ -320,7 +321,7 @@ abstract class Record
      * Set the properties given by a key/value array
      * 
      * @param array $values
-     * @return \Hynage\Database\Record
+     * @return \Hynage\ORM\Model\Record
      */
     public function populate(array $values)
     {

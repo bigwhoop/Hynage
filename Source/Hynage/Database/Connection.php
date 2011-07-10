@@ -57,7 +57,7 @@ class Connection
      * Query the database
      * 
      * @param string $sql
-     * @return PDOStatement
+     * @return \PDOStatement
      */
     public function query($sql)
     {
@@ -70,7 +70,7 @@ class Connection
      * 
      * @param string $sql
      * @param array $options
-     * @return PDOStatement
+     * @return \PDOStatement
      */
     public function prepare($sql, array $options = array())
     {
