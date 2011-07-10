@@ -173,4 +173,14 @@ class Request
     {
         return parse_url($this->_url, PHP_URL_PATH);
     }
+    
+    
+    public function getHeader($key, $default = null)
+    {
+        if (array_key_exists($key, $_SERVER)) {
+            return $_SERVER[$key];
+        }
+
+        return $default;
+    }
 }
