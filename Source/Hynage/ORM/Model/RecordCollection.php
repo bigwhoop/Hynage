@@ -33,6 +33,16 @@ class RecordCollection implements ExportStrategy\Exportable, \Iterator, \Countab
     }
 
 
+    public function getRandom($default = null)
+    {
+        if (!$this->count()) {
+            return $default;
+        }
+
+        return $this->get(array_rand($this->data), $default);
+    }
+
+
     /**
      * Export this record collection. Default is array.
      *

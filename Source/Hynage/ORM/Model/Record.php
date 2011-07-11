@@ -7,6 +7,12 @@ use Hynage,
 abstract class Record implements ExportStrategy\Exportable
 {
     /**
+     * @bool
+     */
+    protected $_isPersistent = false;
+
+    
+    /**
      * Find records by an SQL statement
      * 
      * @param string $sql
@@ -82,23 +88,45 @@ abstract class Record implements ExportStrategy\Exportable
      */
     public static function findOne($id, $load = false)
     {
-        return self::findOneBy(static::getPrimaryKeyField()->getName(), $id);
+        return static::findWhere(static::buildWhereForPrimaryKeyFields(), $id);
     }
+
+
+    /**
+     * @throws \LogicException
+     * @return string
+     */
+    public function buildWhereForPrimaryKeyFields()
+    {
+        $pks = static::getPrimaryKeyFields();
+
+        if (!count($pks)) {
+            throw new \LogicException('There is no primary key defined.');
+        }
+
+        $wheres = array();
+        foreach ($pks as $pk) {
+            $wheres[] = sprintf('`%s` = ?', $pk->getName());
+        }
+        
+        return ' (' . join(' AND ', $wheres) . ') ';
+    }
+
     
     
     /**
      * Find all records of this model
      * 
-     * @return array
+     * @return \Hynage\ORM\Model\RecordCollection
      */
     public static function findAll()
     {
         $db = Connection::getCurrent();
         
-        $sql = 'SELECT * '
-             . 'FROM `%s`';
-        
-        $sql = sprintf($sql, static::getTableName(), static::getPrimaryKeyField()->getName());
+        $sql = sprintf(
+            'SELECT * FROM `%s`',
+            static::getTableName()
+        );
         
         $stmt = $db->query($sql);
         
@@ -131,6 +159,7 @@ abstract class Record implements ExportStrategy\Exportable
             }
             
             $obj = new $class;
+            $obj->_isPersistent = true;
             $obj->populate($values);
             
             $records->add($obj);
@@ -178,19 +207,21 @@ abstract class Record implements ExportStrategy\Exportable
     
     
     /**
-     * Return the primary key field name
+     * Return the primary key field(s)
      * 
-     * @return \Hynage\ORM\Model\Record\Field|false
+     * @return \Hynage\ORM\Model\Record\Field|array|false
      */
-    public static function getPrimaryKeyField()
+    public static function getPrimaryKeyFields()
     {
+        $pks = array();
+
         foreach (self::getFieldDefinitions() as $field) {
             if ($field->isPrimary()) {
-                return $field;
+                $pks[] = $field;
             }
         }
         
-        return false;
+        return $pks;
     }
     
     
@@ -365,18 +396,22 @@ abstract class Record implements ExportStrategy\Exportable
     }
 
 
+    /**
+     * @return bool
+     */
     public function isPersistent()
     {
-        $primaryKey = static::getPrimaryKeyField();
-        return !empty($this->{$primaryKey->getProperty()});
+        return $this->_isPersistent;
     }
     
-    
+
+    /**
+     * @return \Hynage\ORM\Model\Record
+     */
     public function save()
     {
         $db = Connection::getCurrent();
         
-        $primaryKey = static::getPrimaryKeyField();
         $tableName  = static::getTableName();
         
         $values = array();
@@ -418,6 +453,8 @@ abstract class Record implements ExportStrategy\Exportable
             if (null !== $autoIncrementField) {
                 $this->{$autoIncrementField->getProperty()} = $db->getAdapter()->lastInsertId();
             }
+
+            $this->_isPersistent = true;
         }
         
         // Update
@@ -428,13 +465,16 @@ abstract class Record implements ExportStrategy\Exportable
             }
             
             $sql = sprintf(
-                "UPDATE `%s` SET %s WHERE `{$primaryKey->getName()}` = ?",
+                "UPDATE `%s` SET %s WHERE %s LIMIT 1",
                 $tableName,
-                join(', ', $placeholders)
+                join(', ', $placeholders),
+                static::buildWhereForPrimaryKeyFields()
             );
-            
-            $values[$primaryKey->getName()] = $this->{$primaryKey->getProperty()};
-            
+
+            foreach (static::getPrimaryKeyFields() as $pk) {
+                $values[$pk->getName()] = $this->{$pk->getProperty()};
+            }
+
             $stmt = $db->prepare($sql);
             $stmt->execute(array_values($values));
         }
@@ -447,13 +487,12 @@ abstract class Record implements ExportStrategy\Exportable
     {
         $db = Connection::getCurrent();
         
-        $primaryKey = static::getPrimaryKeyField();
         $tableName  = static::getTableName();
         
         $sql = sprintf(
-            "DELETE FROM `%s` WHERE `%s` = ? LIMIT 1",
+            "DELETE FROM `%s` WHERE %s LIMIT 1",
             $tableName,
-            $primaryKey->getName()
+            static::buildWhereForPrimaryKeyFields()
         );
         
         $stmt = $db->prepare($sql);

@@ -2,6 +2,16 @@
 namespace Hynage\Tools;
 use Hynage\Application as Application;
 
+$commands = array(
+    'model-to-sql' => array(
+        'description' => 'Generates the SQL to create the table structure of a specific model.',
+        'params' => array(
+            '--class' => 'Name of the model (incl. namespace)',
+        ),
+        'callback' => 'model_to_sql',
+    ),
+);
+
 $configPath = trim(@$argv[1]);
 if (empty($configPath)) {
     help_exit('Missing path to config file.');
@@ -17,16 +27,6 @@ require __DIR__ . '/../Source/Hynage/Application.php';
 // Bootstrap autoloader
 $app = Application::getInstance($configPath);
 $app->bootstrap(array('autoloader', 'errorHandler', 'exceptionHandler'));
-
-$commands = array(
-    'model-to-sql' => array(
-        'description' => 'Generates the SQL to create the table structure of a specific model.',
-        'params' => array(
-            '--class' => 'Name of the model (incl. namespace)',
-        ),
-        'callback' => 'model_to_sql',
-    ),
-);
 
 $commandKey = trim(@$argv[2]);
 

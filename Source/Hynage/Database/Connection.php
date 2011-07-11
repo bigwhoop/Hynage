@@ -51,6 +51,36 @@ class Connection
         $this->_pdo = new \PDO($dsn, $parts['user'], $parts['pass']);
         $this->_pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
+
+
+    /**
+     * @return \Hynage\Database\Connection
+     */
+    public function beginTransaction()
+    {
+        $this->getAdapter()->beginTransaction();
+        return $this;
+    }
+
+
+    /**
+     * @return \Hynage\Database\Connection
+     */
+    public function rollBack()
+    {
+        $this->getAdapter()->rollBack();
+        return $this;
+    }
+
+
+    /**
+     * @return \Hynage\Database\Connection
+     */
+    public function commit()
+    {
+        $this->getAdapter()->commit();
+        return $this;
+    }
     
     
     /**
@@ -81,7 +111,7 @@ class Connection
     /**
      * Return the actual database adapter
      * 
-     * @return PDO
+     * @return \PDO
      */
     public function getAdapter()
     {
