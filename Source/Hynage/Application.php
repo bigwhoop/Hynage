@@ -1,7 +1,8 @@
 <?php
 namespace Hynage;
 use Hynage\MVC\Controller,
-    Hynage\Autoloading;
+    Hynage\Autoloading,
+    Hynage\HTTP;
 
 class Application
 {
@@ -77,7 +78,7 @@ class Application
             exit((string)$e);
         }
 
-        $request = new Controller\Request('/error/internal');
+        $request = new HTTP\Request('/error/internal');
         $request->setParam('exception', $e);
 
         $this->bootstrap('Frontcontroller')->dispatch($request);
@@ -271,9 +272,9 @@ class Application
     /**
      * Dispatch a request
      *
-     * @param \Hynage\Controller\Request|null $request
+     * @param \Hynage\HTTP\Request|null $request
      */
-    public function dispatch(Controller\Request $request = null)
+    public function dispatch(HTTP\Request $request = null)
     {
         $this->bootstrap('frontcontroller')->dispatch($request);
     }
@@ -381,29 +382,6 @@ class Application
     
     
     /**
-     * Init the auth handler
-     */
-    protected function _initAuth()
-    {
-        $this->bootstrap('Session');
-        
-        $auth = Auth::getInstance();
-        
-        // Check for the case that the current user has a session key for an
-        // user id but the corresponding user is non-existent.
-        if ($auth->hasIdentity() && !$auth->hasIdentity(true)) {
-            $auth->clearIdentity();
-            
-            $rsp = new Controller\Response();
-            $rsp->setHeader('location', '/error/invalid-session', 302);
-            $rsp->send(true);
-        }
-        
-        return $auth;
-    }
-    
-    
-    /**
      * Init the front controller and set the default controller
      * and default action.
      * 
@@ -411,11 +389,11 @@ class Application
      */
     protected function _initFrontcontroller()
     {
-        $this->bootstrap('autoloader');
+        $this->bootstrap(array('autoloader', 'session'));
         
         $config = $this->getConfig();
         
-        $front = new MVC\Controller\Front();
+        $front = new MVC\Controller\Front($this);
         $front->setController($config->get('frontController.defaults.controller', 'index'))
               ->setAction($config->get('frontController.defaults.action', 'index'));
         

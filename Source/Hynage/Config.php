@@ -68,6 +68,22 @@ class Config implements \Iterator
         $this->_data[$key] = $value;
         return $this;
     }
+
+
+    public function has($key)
+    {
+        return array_key_exists($key, $this->_data);
+    }
+
+    
+    public function remove($key)
+    {
+        if ($this->has($key)) {
+            unset($this->_data[$key]);
+        }
+
+        return $this;
+    }
     
     
     public function getData()

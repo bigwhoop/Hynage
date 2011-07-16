@@ -1,28 +1,31 @@
 <?php
 namespace Hynage\Form\Element;
 
-class SelectElement extends HtmlElement
+class SelectElement extends MultiElement
 {
-    protected $_values = array();
-
-
-    public function setValues(array $values)
+    public function setMultiSelectable($bool)
     {
-        $this->_values = $values;
+        if ($bool) {
+            $this->setAttribute('multiple', null);
+        } else {
+            $this->removeAttribute('multiple');
+        }
+
         return $this;
     }
 
 
-    public function getValues()
+    public function isMultiSelectable()
     {
-        return $this->_values;
+        return $this->getAttributes()->has('multiple');
     }
 
-
+    
     public function renderElement()
     {
         $values = $this->getValues();
         $value  = $this->getValue();
+        
         if (count($values) && !array_key_exists($value, $values)) {
             $value = reset($values);
         }
@@ -30,6 +33,10 @@ class SelectElement extends HtmlElement
         $attribs = $this->getAttributes()->toArray();
         $attribs['name'] = $this->getName();
         $attribs['id']   = $this->getId();
+
+        if ($this->isMultiSelectable()) {
+            $attribs['name'] .= '[]';
+        }
 
         $s = '<select';
         foreach ($attribs as $k => $v) {

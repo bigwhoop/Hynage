@@ -59,6 +59,12 @@ class RecordCollection implements ExportStrategy\Exportable, \Iterator, \Countab
     }
 
 
+    public function toKeyValueArray($keyFieldName, $valueFieldName)
+    {
+        return $this->export(new ExportStrategy\KeyValueArrayStrategy($keyFieldName, $valueFieldName));
+    }
+
+
     public function count()
     {
         return count($this->data);

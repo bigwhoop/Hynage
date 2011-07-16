@@ -13,7 +13,11 @@ class InputElement extends HtmlElement
 
         $s = '<input';
         foreach ($attribs as $k => $v) {
-            $s .= " $k=\"$v\"";
+            if (null === $v) {
+                $s .= " $k";
+            } else {
+                $s .= " $k=\"$v\"";
+            }
         }
         $s .= '>';
         

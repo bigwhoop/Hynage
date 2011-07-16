@@ -7,15 +7,50 @@ use Hynage\Filter\FilterInterface as FilterInterface;
 
 class HtmlElement implements ElementInterface
 {
+    /**
+     * @var string
+     */
     protected $_name;
+
+    /**
+     * @var string
+     */
     protected $_label;
+
+    /**
+     * @var string
+     */
     protected $_value;
+
+    /**
+     * @var \Hynage\Config
+     */
     protected $_attributes = null;
+
+    /**
+     * @var \SplObjectStorage
+     */
     protected $_validators = null;
+
+    /**
+     * @var \SplObjectStorage
+     */
     protected $_filters    = null;
+
+    /**
+     * @var array
+     */
     protected $_errors     = array();
     
 
+    /**
+     * Constructor.
+     *
+     * @param string $name
+     * @param null $label
+     * @param null $value
+     * @param \Hynage\Config|null $attributes
+     */
     public function __construct($name, $label = null, $value = null, Config $attributes = null)
     {
         $this->_name  = $name;
@@ -94,6 +129,19 @@ class HtmlElement implements ElementInterface
     public function getAttributes()
     {
         return $this->_attributes;
+    }
+
+
+    public function setAttribute($key, $val)
+    {
+        $this->_attributes->set($key, $val);
+        return $this;
+    }
+    
+    public function removeAttribute($key)
+    {
+        $this->_attributes->remove($key);
+        return $this;
     }
 
 

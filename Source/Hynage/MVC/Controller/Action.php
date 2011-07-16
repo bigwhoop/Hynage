@@ -1,8 +1,9 @@
 <?php
 namespace Hynage\MVC\Controller;
-use Hynage\MVC\View as View;
-use Hynage\HTTP\Request as Request;
-use Hynage\HTTP\Response as Response;
+use Hynage\MVC\View as View,
+    Hynage\HTTP\Request as Request,
+    Hynage\HTTP\Response as Response,
+    Hynage\MVC\Controller\Front as FrontController;
 
 abstract class Action
 {
@@ -20,6 +21,11 @@ abstract class Action
      * @var \Hynage\HTTP\Response
      */
     protected $_response = null;
+
+    /**
+     * @var \Hynage\MVC\Controller\Front
+     */
+    protected $_front = null;
     
     
     /**
@@ -27,8 +33,9 @@ abstract class Action
      * 
      * @param \Hynage\MVC\View $view
      */
-    public function __construct(View $view, Request $request, Response $response)
+    public function __construct(FrontController $front, View $view, Request $request, Response $response)
     {
+        $this->_front    = $front;
         $this->_view     = $view;
         $this->_request  = $request;
         $this->_response = $response;
@@ -47,6 +54,17 @@ abstract class Action
      */
     public function postDispatch()
     {}
+
+
+    /**
+     * Return the front controller
+     *
+     * @return \Hynage\MVC\Controller\Front
+     */
+    public function getFrontController()
+    {
+        return $this->_front;
+    }
     
     
     /**
@@ -103,7 +121,7 @@ abstract class Action
      * 
      * @param string $key
      * @param mixed $value
-     * @return \Hynage\MVC\Controller\Front
+     * @return \Hynage\MVC\Controller\Action
      */
     public function setViewParam($key, $value)
     {

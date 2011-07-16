@@ -12,6 +12,11 @@ use Hynage,
 class Front
 {
     /**
+     * \Hynage\Application
+     */
+    protected $_app = null;
+
+    /**
      * @var string
      */
     protected $_controller = null;
@@ -38,13 +43,22 @@ class Front
 
 
     /**
-     * Return the application's config
+     * Constructor.
      *
-     * @return \Hynage\Config
+     * @param \Hynage\Application $app
      */
-    protected function _getApplicationConfig()
+    public function __construct(App $app)
     {
-        return App::getInstance()->getConfig();
+        $this->_app = $app;
+    }
+
+
+    /**
+     * @return \Hynage\Application
+     */
+    public function getApplication()
+    {
+        return $this->_app;
     }
     
     
@@ -80,7 +94,7 @@ class Front
      */
     public function getFormattedControllerName()
     {
-        $config = $this->_getApplicationConfig();
+        $config = $this->_app->getConfig();
 
         $formatter = $config->get('frontController.formatters.controllerName');
         if (!is_callable($formatter)) {
@@ -98,7 +112,7 @@ class Front
      */
     public function getFormattedControllerPath()
     {
-        $config = $this->_getApplicationConfig();
+        $config = $this->_app->getConfig();
 
         $formatter = $config->get('frontController.formatters.controllerPath');
         if (!is_callable($formatter)) {
@@ -141,7 +155,7 @@ class Front
      */
     public function getActionMethod()
     {
-        $config = $this->_getApplicationConfig();
+        $config = $this->_app->getConfig();
 
         $formatter = $config->get('frontController.formatters.actionName')->getData();
         if (!is_callable($formatter)) {
@@ -259,7 +273,8 @@ class Front
 
         // Load controller class
         $controllerClass = $this->getFormattedControllerName();
-        require $this->getFormattedControllerPath();
+        $controllerPath =  $this->getFormattedControllerPath();
+        require $controllerPath;
 
         // Check if the controller class is loadable
         if (!@class_exists($controllerClass, true)) {
@@ -273,7 +288,7 @@ class Front
         $response = $this->getResponse();
 
         // Create the controller
-        $controller = new $controllerClass($view, $request, $response);
+        $controller = new $controllerClass($this, $view, $request, $response);
 
         // Check if the controller class extends the base action controller class
         if (!in_array('Hynage\\MVC\\Controller\\Action', class_parents($controllerClass))) {

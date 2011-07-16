@@ -153,12 +153,38 @@ class HtmlForm
 
     public function render()
     {
-        $viewConfig = new Config();
+        /*$viewConfig = new Config();
         $viewConfig->set('basePath', realpath(HYNAGE_APP_PATH . '/Views/_Partial'));
 
         $view = new View($viewConfig);
         $view->setParam('form', $this);
-        return $view->render('Form.phtml', false);
+        return $view->render('Form.phtml', false);*/
+
+        ob_start();
+        ?>
+
+        <?php if (count($this->getErrors())): ?>
+            <div>
+                <p><?php echo $this->_('The following errors occurred:'); ?></p>
+                <ul>
+                    <?php foreach ($this->getErrors() as $error): ?>
+                        <li><?php echo $error; ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+
+        <form action="<?php echo $this->getAction(); ?>" method="<?php echo $this->getMethod(); ?>" enctype="<?php echo $this->getEnctype(); ?>">
+            <dl class="form">
+                <?php foreach ($this->getElements() as $e): ?>
+                    <?php echo $e->render(); ?>
+                <?php endforeach; ?>
+            </dl>
+        </form>
+
+        <?php
+        $content = trim(ob_get_clean());
+        return $content;
     }
 
 
@@ -191,6 +217,18 @@ class HtmlForm
 
         $e->setValue($value);
         return $this;
+    }
+
+
+    public function getElementValues()
+    {
+        $a = array();
+
+        foreach ($this->getElements() as $e) {
+            $a[$e->getName()] = $e->getValue();
+        }
+
+        return $a;
     }
 
 

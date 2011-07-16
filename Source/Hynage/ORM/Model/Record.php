@@ -83,12 +83,11 @@ abstract class Record implements ExportStrategy\Exportable
      * Find a specific record by its primary key
      * 
      * @param int|array $id
-     * @param bool $load
      * @return \Hynage\ORM\Model\Record|false
      */
-    public static function findOne($id, $load = false)
+    public static function findOne($id)
     {
-        return static::findWhere(static::buildWhereForPrimaryKeyFields(), $id);
+        return static::findWhere(static::buildWhereForPrimaryKeyFields(), array($id));
     }
 
 
@@ -167,7 +166,7 @@ abstract class Record implements ExportStrategy\Exportable
         
         // Only one record is expected. Or false if none found.
         if ($singleRecord) {
-            return count($records) ? $records[0] : false;
+            return count($records) ? $records->get(0) : false;
         }
         
         return $records;
@@ -320,8 +319,28 @@ abstract class Record implements ExportStrategy\Exportable
     }
 
 
-    public function getValue(Record\Field $field)
+    public function getFieldByName($name)
     {
+        foreach (static::getFieldDefinitions() as $field) {
+            if ($field->getName() === $name) {
+                return $field;
+            }
+        }
+
+        return false;
+    }
+
+
+    public function getValue($field)
+    {
+        if (!$field instanceof Record\Field) {
+            $fieldName = $field;
+            $field = $this->getFieldByName($field);
+            if (!$field) {
+                throw new Record\InvalidDefinitionException('No such field: ' . $fieldName);
+            }
+        }
+        
         $property = $field->getProperty();
 
         if (!isset($this->$property)) {
