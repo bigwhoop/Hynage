@@ -191,6 +191,13 @@ abstract class Action
     }
 
 
+    public function reload($exit = true)
+    {
+        $url = $this->getRequest()->getHeader('REQUEST_URI', '/');
+        return $this->redirect($url, 302, $exit);
+    }
+
+
     public function _($string)
     {
         $args = func_get_args();

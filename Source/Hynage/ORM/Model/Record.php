@@ -87,7 +87,7 @@ abstract class Record implements ExportStrategy\Exportable
      */
     public static function findOne($id)
     {
-        return static::findWhere(static::buildWhereForPrimaryKeyFields(), array($id));
+        return static::findWhere(static::buildWhereForPrimaryKeyFields(), array($id), true);
     }
 
 
