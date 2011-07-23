@@ -274,12 +274,13 @@ class Front
         // Load controller class
         $controllerClass = $this->getFormattedControllerName();
         $controllerPath =  $this->getFormattedControllerPath();
-        require $controllerPath;
 
         // Check if the controller class is loadable
-        if (!@class_exists($controllerClass, true)) {
+        if (!file_exists($controllerPath) || !@class_exists($controllerClass, true)) {
             throw new Exception('Invalid controller "' . $this->getController() . '". Tried class "' . $controllerClass . '".');
         }
+
+        require_once $controllerPath;
         
         // Prepare view
         $viewConfig = $config->get('view', new Hynage\Config());

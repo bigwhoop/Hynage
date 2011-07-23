@@ -115,16 +115,18 @@ abstract class Record implements ExportStrategy\Exportable
     
     /**
      * Find all records of this model
-     * 
+     *
+     * @param string|null $orderBy
      * @return \Hynage\ORM\Model\RecordCollection
      */
-    public static function findAll()
+    public static function findAll($orderBy = null)
     {
         $db = Connection::getCurrent();
         
         $sql = sprintf(
-            'SELECT * FROM `%s`',
-            static::getTableName()
+            'SELECT * FROM `%s` %s',
+            static::getTableName(),
+            empty($orderBy) ? '' : "ORDER BY $orderBy"
         );
         
         $stmt = $db->query($sql);

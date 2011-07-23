@@ -52,10 +52,16 @@ class Application
         
         return self::$_instance;
     }
-    
+
 
     /**
      * Put errors into an ErrorException object an throw it at the clown.
+     *
+     * @throws \ErrorException
+     * @param int $severity
+     * @param string $message
+     * @param string $filename
+     * @param int $line
      */
     public function handleError($severity, $message, $filename, $line)
     {
@@ -78,10 +84,21 @@ class Application
             exit((string)$e);
         }
 
-        $request = new HTTP\Request('/error/internal');
-        $request->setParam('exception', $e);
+        try {
+            $config = $this->getConfig();
 
-        $this->bootstrap('Frontcontroller')->dispatch($request);
+            $errorUrl = sprintf(
+                "/%s/%s",
+                $config->get('frontController.errors.controller', 'errors'),
+                $config->get('frontController.errors.action', 'error')
+            );
+
+            $request = new HTTP\Request($errorUrl);
+            $request->setParam('exception', $e);
+            $this->bootstrap('Frontcontroller')->dispatch($request);
+        } catch (\Exception $e2) {
+            exit($e);
+        }
     }
     
     
@@ -389,7 +406,7 @@ class Application
      */
     protected function _initFrontcontroller()
     {
-        $this->bootstrap(array('autoloader', 'session'));
+        $this->bootstrap(array('autoloader', 'session', 'errorhandler', 'exceptionhandler'));
         
         $config = $this->getConfig();
         
