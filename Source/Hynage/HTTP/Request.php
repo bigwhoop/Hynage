@@ -85,9 +85,25 @@ class Request
             throw new Exception('Invalid parameter type given: ' . $type);
         }
         
-        $this->_params[$type][$key] = $value;
+        $this->_params[$type][$key] = $this->normalizeValue($value);
         
         return $this;
+    }
+
+
+    private function normalizeValue($value)
+    {
+        if (!is_scalar($value)) {
+            return $value;
+        }
+
+        // Convert %252f to /
+        $value = str_ireplace('%252F', '/', $value);
+
+        // Remove other encodings
+        $value = urldecode($value);
+
+        return $value;
     }
     
     

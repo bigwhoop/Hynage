@@ -1,35 +1,12 @@
 <?php
 namespace Hynage\ORM\Model;
+use Hynage\Generic\Generic;
 
-class RecordCollection implements ExportStrategy\Exportable, \Iterator, \Countable
+class RecordCollection extends Generic implements ExportStrategy\Exportable
 {
-    private $data = array();
-
-    public function __construct(array $data = array())
+    public function __construct(array $data = array(), $type = '\\Hynage\\ORM\\Model\\Record')
     {
-        $this->data = $data;
-    }
-
-
-    public function add(Record $obj, $key = null)
-    {
-        if (null === $key) {
-            $this->data[] = $obj;
-        } else {
-            $this->data[$key] = $obj;
-        }
-
-        return $this;
-    }
-    
-
-    public function get($key, $default = null)
-    {
-        if (array_key_exists($key, $this->data)) {
-            return $this->data[$key];
-        }
-        
-        return $default;
+        parent::__construct($type, $data);
     }
 
 
