@@ -18,7 +18,7 @@ abstract class Record implements ExportStrategy\Exportable
      * @param string $sql
      * @param array $params
      * @param bool $singleRecord
-     * @return array|Hynage\ORM\Model\Record|false
+     * @return \Hynage\ORM\Model\Record|\Hynage\ORM\Model\RecordCollection|false
      */
     public static function find($sql, array $params = array(), $singleRecord = false)
     {
@@ -31,6 +31,12 @@ abstract class Record implements ExportStrategy\Exportable
     }
 
 
+    /**
+     * @param string $sqlWhere
+     * @param array $params
+     * @param bool $singleRecord
+     * @return \Hynage\ORM\Model\Record|\Hynage\ORM\Model\RecordCollection|false
+     */
     static public function findWhere($sqlWhere, array $params = array(), $singleRecord = false)
     {
         $db = Connection::getCurrent();
@@ -48,6 +54,12 @@ abstract class Record implements ExportStrategy\Exportable
     }
 
 
+    /**
+     * @param string $field
+     * @param mixed $value
+     * @param bool $load
+     * @return \Hynage\ORM\Model\Record|false
+     */
     static public function findOneBy($field, $value, $load = false)
     {
         if (empty($value)) {

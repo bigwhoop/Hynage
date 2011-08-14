@@ -176,7 +176,7 @@ class Request
      */
     public function getHost()
     {
-        return parse_url($this->_url, PHP_URL_HOST);
+        return '/' . trim(parse_url($this->_url, PHP_URL_HOST), '/');
     }
     
     
@@ -187,7 +187,7 @@ class Request
      */
     public function getPath()
     {
-        return parse_url($this->_url, PHP_URL_PATH);
+        return '/' . trim(parse_url($this->_url, PHP_URL_PATH), '/');
     }
     
     

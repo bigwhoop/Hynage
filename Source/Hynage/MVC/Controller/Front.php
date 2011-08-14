@@ -60,6 +60,23 @@ class Front
     {
         return $this->_app;
     }
+
+
+    /**
+     * @param string $path
+     * @return string
+     */
+    private function formatPath($path)
+    {
+        $config = $this->_app->getConfig();
+        
+        $formatter = $config->get('frontController.formatters.requestPath');
+        if (is_callable($formatter)) {
+            $path = call_user_func($formatter, $path);
+        }
+
+        return $path;
+    }
     
     
     /**
@@ -237,7 +254,7 @@ class Front
     public function dispatch(Request $request = null, Response $response = null)
     {
         $config = App::getInstance()->getConfig();
-        
+
         if ($request) {
             $this->setRequest($request);
         }
@@ -247,7 +264,8 @@ class Front
         }
         
         $request = $this->getRequest();
-        $parts = explode('/', trim($request->getPath(), '/'));
+        $path    = $this->formatPath($request->getPath());
+        $parts   = explode('/', ltrim($path, '/'));
         
         if (count($parts) && !empty($parts[0])) {
             // Set the given controller
@@ -272,20 +290,27 @@ class Front
         }
 
         // Load controller class
+        $controllerPath  = $this->getFormattedControllerPath();
         $controllerClass = $this->getFormattedControllerName();
-        $controllerPath =  $this->getFormattedControllerPath();
 
         // Check if the controller class is loadable
-        if (!file_exists($controllerPath) || !@class_exists($controllerClass, true)) {
-            throw new Exception('Invalid controller "' . $this->getController() . '". Tried class "' . $controllerClass . '".');
+        $loadable = false;
+        if (file_exists($controllerPath)) {
+            require_once $controllerPath;
+
+            if (class_exists($controllerClass, false)) {
+                $loadable = true;
+            }
         }
 
-        require_once $controllerPath;
+        if (!$loadable) {
+            throw new Exception('Invalid controller "' . $this->getController() . '". Tried class "' . $controllerClass . '" in file "' . $controllerPath . '".');
+        }
         
         // Prepare view
         $viewConfig = $config->get('view', new Hynage\Config());
         $view = new View($viewConfig);
-        
+
         $response = $this->getResponse();
 
         // Create the controller

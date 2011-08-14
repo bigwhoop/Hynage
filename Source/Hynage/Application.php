@@ -65,7 +65,7 @@ class Application
      */
     public function handleError($severity, $message, $filename, $line)
     {
-        if (error_reporting() == 0) {
+        if (error_reporting() === 0) {
             return;
         }
         
@@ -83,7 +83,7 @@ class Application
         if (php_sapi_name() == 'cli') {
             exit((string)$e);
         }
-
+        
         try {
             $config = $this->getConfig();
 
@@ -149,7 +149,7 @@ class Application
         $this->_config = $config;
 
         // Constants
-        $constants = $config->get('constants', array())->getData();
+        $constants = $config->get('constants', new Config())->getData();
         if (!empty($constants)) {
             foreach ($constants as $key => $value) {
                 define($key, $value);
@@ -157,13 +157,13 @@ class Application
         }
 
         // User include paths
-        $userIncludePaths = $config->get('includePaths', array())->getData();
+        $userIncludePaths = $config->get('includePaths', new Config())->getData();
         if (!empty($userIncludePaths)) {
             $this->addIncludePath($userIncludePaths);
         }
 
         // User autoloaders
-        $callbacks = $this->getConfig()->get('autoloaders', array())->getData();
+        $callbacks = $this->getConfig()->get('autoloaders', new Config())->getData();
         foreach ($callbacks as $loader) {
             $this->addAutoloader($loader);
         }
