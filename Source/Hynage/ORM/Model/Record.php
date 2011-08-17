@@ -20,7 +20,7 @@ abstract class Record implements ExportStrategy\Exportable
      * @param bool $singleRecord
      * @return \Hynage\ORM\Model\Record|\Hynage\ORM\Model\RecordCollection|false
      */
-    public static function find($sql, array $params = array(), $singleRecord = false)
+    static public function find($sql, array $params = array(), $singleRecord = false)
     {
         $db = Connection::getCurrent();
         
@@ -28,6 +28,17 @@ abstract class Record implements ExportStrategy\Exportable
         $stmt->execute($params);
         
         return self::_hydrate($stmt, $singleRecord);
+    }
+
+
+    static public function count($sql, array $params = array())
+    {
+        $db = Connection::getCurrent();
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+
+        return 0 + $stmt->fetchColumn();
     }
 
 
