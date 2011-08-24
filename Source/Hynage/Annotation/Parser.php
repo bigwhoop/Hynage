@@ -114,13 +114,17 @@ class Parser
         }
         
         // Pair annotation
-        $values = explode(',', $value);
+        $values = explode(', ', $value);
         $values = array_map('trim', $values);
-        
+
         $value = array();
         foreach ($values as $string) {
-            list($key, $val) = explode('=', $string, 2);
-            $value[$key] = $this->_parseAnnotationValue($val);
+            if (false === strpos($string, '=')) {
+                $value[] = $string;
+            } else {
+                list($key, $val) = explode('=', $string, 2);
+                $value[$key] = $this->_parseAnnotationValue($val);
+            }
         }
         
         return $value;

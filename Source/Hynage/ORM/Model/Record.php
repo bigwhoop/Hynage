@@ -2,7 +2,7 @@
 namespace Hynage\ORM\Model;
 use Hynage,
     Hynage\Reflection,
-    Hynage\Database\Connection as Connection;
+    Hynage\Database\Connection;
 
 abstract class Record implements ExportStrategy\Exportable
 {
@@ -318,11 +318,29 @@ abstract class Record implements ExportStrategy\Exportable
                   : ltrim($property->name, '_');
             
             $default = $property->getAnnotation('HynageColumnDefault');
-            
+
+            if (isset($definition['type'])) {
+                if ($definition['type'] == 'enum') {
+                    if (!isset($definition['values'])) {
+                        throw new Record\InvalidDefinitionException("Missing 'values' property in @HynageColumn annotation for enum data type $name.");
+                    }
+
+                    $enumValues = array();
+                    foreach (explode(',', $definition['values']) as $enumValue) {
+                        $enumValues[] = "'$enumValue'";
+                    }
+
+                    $definition['type'] = 'ENUM(' . join(', ', $enumValues) . ')';
+                    unset($definition['length']);
+                } else {
+                    $definition['type'] = strtoupper($definition['type']);
+                }
+            }
+
             $sql .= sprintf(
                 '    `%s` %s%s%s%s%s%s,' . PHP_EOL,
                 $name,
-                isset($definition['type']) ? strtoupper($definition['type']) : 'VARCHAR',
+                isset($definition['type']) ? $definition['type'] : 'VARCHAR',
                 isset($definition['length']) ? sprintf('(%d)', $definition['length']) : '',
                 $property->hasAnnotation('HynageColumnUnsigned') ? ' UNSIGNED' : '',
                 $property->hasAnnotation('HynageColumnNotNull') ? ' NOT NULL' : ' NULL',

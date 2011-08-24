@@ -243,8 +243,16 @@ class HtmlForm
     }
 
 
+    /**
+     * @param \Hynage\HTTP\Request $request
+     * @return bool
+     */
     public function isValid(Request $request)
     {
+        if (!$request->isPost()) {
+            return false;
+        }
+
         // Set values
         foreach ($this->_elements as $e) {
             if ($request->hasPost($e->getName())) {
