@@ -1,6 +1,6 @@
 <?php
 namespace Hynage\ORM\Model;
-use Hynage\Generic\Generic;
+use Hynage\Data\Generic;
 
 class RecordCollection extends Generic implements ExportStrategy\Exportable
 {

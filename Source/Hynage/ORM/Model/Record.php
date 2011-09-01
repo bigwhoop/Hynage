@@ -279,7 +279,7 @@ abstract class Record implements ExportStrategy\Exportable
             $attributes['notNull']       = $property->hasAnnotation('HynageColumnNotNull');
             $attributes['autoIncrement'] = $property->hasAnnotation('HynageColumnAutoIncrement');
             $attributes['primary']       = $property->hasAnnotation('HynageColumnPrimary');
-            
+
             if ($property->hasAnnotation('HynageColumnDefault')) {
                 $attributes['default']   = $property->getAnnotation('HynageColumnDefault');
             }
@@ -386,7 +386,8 @@ abstract class Record implements ExportStrategy\Exportable
         
         $property = $field->getProperty();
 
-        if (!isset($this->$property)) {
+        $reflectionClass = new \ReflectionClass(get_called_class());
+        if (!$reflectionClass->hasProperty($property)) {
             throw new Record\InvalidDefinitionException('No such field: ' . $field->getName());
         }
 
@@ -475,7 +476,7 @@ abstract class Record implements ExportStrategy\Exportable
         $db = Connection::getCurrent();
         
         $tableName  = static::getTableName();
-        
+
         $values = array();
         $autoIncrementField = null;
         foreach (static::getFieldDefinitions() as $field) {
@@ -484,11 +485,16 @@ abstract class Record implements ExportStrategy\Exportable
                 continue;
             }
             
-            $value = $this->{$field->getProperty()};
+            $value = $this->getValue($field);
             
             // Skip non-NOT-NULL-fields with NULL value
             if (null === $value && !$field->isNotNull()) {
                 continue;
+            }
+
+            // Set default value
+            if (null === $value) {
+                $value = $field->getDefaultValue();
             }
             
             if ($value instanceof \DateTime) {

@@ -1,5 +1,5 @@
 <?php
-namespace Hynage\Generic;
+namespace Hynage\Data;
 use Hynage\Exception\InvalidArgumentException;
 
 class Generic implements \Iterator, \Countable

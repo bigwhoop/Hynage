@@ -89,4 +89,13 @@ class Field
     {
         return isset($this->_attributes['notNull']) && $this->_attributes['notNull'];
     }
+
+
+    /**
+     * @return mixed
+     */
+    public function getDefaultValue()
+    {
+        return isset($this->_attributes['default']) ? $this->_attributes['default'] : null;
+    }
 }
