@@ -11,6 +11,15 @@ abstract class Record implements ExportStrategy\Exportable
      */
     protected $_isPersistent = false;
 
+    /**
+     * @static
+     * @return \Hynage\Database\Connection
+     */
+    static public function getConnection()
+    {
+        return Connection::getCurrent();
+    }
+
     
     /**
      * Find records by an SQL statement

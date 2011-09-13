@@ -1,6 +1,5 @@
 <?php
 namespace Hynage\Database;
-
 use Hynage;
 
 class Connection
