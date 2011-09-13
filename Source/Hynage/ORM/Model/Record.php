@@ -562,9 +562,15 @@ abstract class Record implements ExportStrategy\Exportable
             $tableName,
             static::buildWhereForPrimaryKeyFields()
         );
-        
+
+        $params = array();
+        foreach (static::getPrimaryKeyFields() as $pk) {
+            $params[$pk->getName()] = $this->{$pk->getProperty()};
+        }
+        $params = array_values($params);
+
         $stmt = $db->prepare($sql);
-        $stmt->execute(array($this->{$primaryKey->getProperty()}));
+        $stmt->execute($params);
         
         return $this;
     }

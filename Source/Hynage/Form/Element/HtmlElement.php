@@ -11,6 +11,11 @@ class HtmlElement implements ElementInterface
      * @var string
      */
     protected $_name;
+    
+    /**
+     * @var string
+     */
+    protected $_id;
 
     /**
      * @var string
@@ -53,9 +58,10 @@ class HtmlElement implements ElementInterface
      */
     public function __construct($name, $label = null, $value = null, Config $attributes = null)
     {
-        $this->_name  = $name;
-        $this->_label = $label;
-        $this->_value = $value;
+        $this->setName($name);
+        $this->setId($name);
+        $this->setLabel($label);
+        $this->setValue($value);
 
         if (!$attributes) {
             $attributes = new Config();
@@ -89,7 +95,7 @@ class HtmlElement implements ElementInterface
     
     public function getId()
     {
-        return $this->getName();
+        return $this->_id;
     }
 
 
@@ -223,6 +229,13 @@ class HtmlElement implements ElementInterface
     
     public function render()
     {
-        return sprintf('<dt>%s</dt><dd>%s</dd>', $this->renderLabel(), $this->renderElement());
+        $id = $this->getId();
+        return sprintf(
+            '<dt id="%s">%s</dt><dd id="%s">%s</dd>',
+            "dt-$id",
+            $this->renderLabel(),
+            "dd-$id",
+            $this->renderElement()
+        );
     }
 }

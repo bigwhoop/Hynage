@@ -153,13 +153,6 @@ class HtmlForm
 
     public function render()
     {
-        /*$viewConfig = new Config();
-        $viewConfig->set('basePath', realpath(HYNAGE_APP_PATH . '/Views/_Partial'));
-
-        $view = new View($viewConfig);
-        $view->setParam('form', $this);
-        return $view->render('Form.phtml', false);*/
-
         ob_start();
         ?>
 
