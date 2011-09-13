@@ -99,6 +99,10 @@ class HtmlElement implements ElementInterface
     }
 
 
+    /**
+     * @param string $v
+     * @return HtmlElement
+     */
     public function setLabel($v)
     {
         $this->_label = $v;
@@ -106,12 +110,19 @@ class HtmlElement implements ElementInterface
     }
 
 
+    /**
+     * @return string
+     */
     public function getLabel()
     {
         return $this->_label;
     }
 
 
+    /**
+     * @param string $v
+     * @return HtmlElement
+     */
     public function setValue($v)
     {
         $this->_value = $v;
@@ -119,12 +130,19 @@ class HtmlElement implements ElementInterface
     }
 
 
+    /**
+     * @return mixed
+     */
     public function getValue()
     {
         return $this->_value;
     }
 
 
+    /**
+     * @param \Hynage\Config $v
+     * @return HtmlElement
+     */
     public function setAttributes(Config $v)
     {
         $this->_attributes = $v;
@@ -132,18 +150,31 @@ class HtmlElement implements ElementInterface
     }
 
 
+    /**
+     * @return \Hynage\Config|null
+     */
     public function getAttributes()
     {
         return $this->_attributes;
     }
 
 
+    /**
+     * @param string $key
+     * @param mixed $val
+     * @return HtmlElement
+     */
     public function setAttribute($key, $val)
     {
         $this->_attributes->set($key, $val);
         return $this;
     }
-    
+
+
+    /**
+     * @param string $key
+     * @return HtmlElement
+     */
     public function removeAttribute($key)
     {
         $this->_attributes->remove($key);
@@ -151,6 +182,10 @@ class HtmlElement implements ElementInterface
     }
 
 
+    /**
+     * @param \Hynage\Validator\ValidatorInterface $v
+     * @return HtmlElement
+     */
     public function addValidator(ValidatorInterface $v)
     {
         $this->_validators->attach($v);
@@ -158,6 +193,10 @@ class HtmlElement implements ElementInterface
     }
 
 
+    /**
+     * @param \Hynage\Validator\ValidatorInterface $v
+     * @return HtmlElement
+     */
     public function removeValidator(ValidatorInterface $v)
     {
         $this->_validators->detach($v);
@@ -165,6 +204,10 @@ class HtmlElement implements ElementInterface
     }
 
 
+    /**
+     * @param \Hynage\Filter\FilterInterface $v
+     * @return HtmlElement
+     */
     public function addFilter(FilterInterface $v)
     {
         $this->_filters->attach($v);
@@ -172,13 +215,20 @@ class HtmlElement implements ElementInterface
     }
 
 
+    /**
+     * @param \Hynage\Filter\FilterInterface $v
+     * @return HtmlElement
+     */
     public function removeFilter(FilterInterface $v)
     {
         $this->_filters->detach($v);
         return $this;
     }
     
-    
+
+    /**
+     * @return bool
+     */
     public function isValid()
     {
         $value = $this->getValue();
@@ -195,6 +245,10 @@ class HtmlElement implements ElementInterface
     }
 
 
+    /**
+     * @param string $v
+     * @return HtmlElement
+     */
     public function addError($v)
     {
         $this->_errors[] = $v;
@@ -202,6 +256,9 @@ class HtmlElement implements ElementInterface
     }
 
 
+    /**
+     * @return HtmlElement
+     */
     public function clearErrors()
     {
         $this->_errors = array();
@@ -209,24 +266,36 @@ class HtmlElement implements ElementInterface
     }
 
 
+    /**
+     * @return array
+     */
     public function getErrors()
     {
         return $this->_errors;
     }
 
-    
+
+    /**
+     * @return string
+     */
     public function renderElement()
     {
         return '';
     }
 
 
+    /**
+     * @return string
+     */
     public function renderLabel()
     {
         return sprintf('<label for="%s">%s</label>', $this->getId(), $this->getLabel());
     }
     
-    
+
+    /**
+     * @return string
+     */
     public function render()
     {
         $id = $this->getId();
