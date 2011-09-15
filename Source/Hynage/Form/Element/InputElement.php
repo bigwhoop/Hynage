@@ -8,7 +8,7 @@ class InputElement extends HtmlElement
         $attribs = $this->getAttributes()->toArray();
         $attribs['name']  = $this->getName();
         $attribs['id']    = $this->getId();
-        $attribs['value'] = htmlentities($this->getValue());
+        $attribs['value'] = htmlentities($this->getValue(), ENT_COMPAT, 'utf-8');
         $attribs['type']  = $type;
 
         $s = '<input';
