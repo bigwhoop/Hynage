@@ -45,6 +45,16 @@ class Front
     protected $_response = null;
 
     /**
+     * @var null|\Hynage\MVC\View
+     */
+    protected $_view = null;
+
+    /**
+     * @var null|\Hynage\MVC\Layout
+     */
+    protected $_layout = null;
+
+    /**
      * @var bool
      */
     protected $_renderLayout = true;
@@ -250,6 +260,60 @@ class Front
         
         return $this->_response;
     }
+
+
+    /**
+     * @param \Hynage\MVC\View $view
+     * @return Front
+     */
+    public function setView(View $view)
+    {
+        $view->setFrontController($this);
+        $this->_view = $view;
+
+        return $this;
+    }
+
+
+    /**
+     * @return \Hynage\MVC\View
+     */
+    public function getView()
+    {
+        if (!$this->_view) {
+            $config = $this->getApplication()->getConfig()->get('view', new Hynage\Config());
+            $this->setView(new View($config));
+        }
+
+        return $this->_view;
+    }
+
+
+    /**
+     * @param \Hynage\MVC\Layout $layout
+     * @return Front
+     */
+    public function setLayout(Layout $layout)
+    {
+        $layout->setFrontController($this);
+        $this->_layout = $layout;
+
+        return $this;
+    }
+
+
+    /**
+     * @return \Hynage\MVC\Layout
+     */
+    public function getLayout()
+    {
+        if (!$this->_layout) {
+            $config = $this->getApplication()->getConfig()->get('layout', new Hynage\Config());
+            $this->setLayout(new Layout($config));
+        }
+
+        return $this->_layout;
+    }
     
     
     /**
@@ -261,7 +325,7 @@ class Front
      */
     public function dispatch(Request $request = null, Response $response = null)
     {
-        $config = App::getInstance()->getConfig();
+        $config = $this->getApplication()->getConfig();
 
         if ($request) {
             $this->setRequest($request);
@@ -315,10 +379,10 @@ class Front
             throw new Exception('Invalid controller "' . $this->getController() . '". Tried class "' . $controllerClass . '" in file "' . $controllerPath . '".');
         }
         
-        // Prepare view
-        $viewConfig = $config->get('view', new Hynage\Config());
-        $view = new View($viewConfig);
+        // Get view
+        $view = $this->getView();
 
+        // Get response
         $response = $this->getResponse();
 
         // Create the controller
@@ -343,8 +407,7 @@ class Front
         
         // Prepare the layout
         if ($this->_renderLayout) {
-            $layoutConfig = $config->get('layout', new Hynage\Config());
-            $layout = new Layout($layoutConfig);
+            $layout = $this->getLayout();
 
             // Wrap the layout around the content
             $layout->setContent($response->getBody());

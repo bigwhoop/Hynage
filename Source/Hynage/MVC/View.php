@@ -8,7 +8,8 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\MVC;
-use Hynage\Config as Config;
+use Hynage\Config as Config,
+    Hynage\MVC\Controller\Front;
 
 class View
 {
@@ -21,6 +22,11 @@ class View
      * @var \Hynage\Config
      */
     protected $_config = null;
+
+    /**
+     * @var \Hynage\MVC\Controller\Front
+     */
+    protected $_frontController = null;
     
     
     /**
@@ -42,6 +48,26 @@ class View
     public function getConfig()
     {
         return $this->_config;
+    }
+
+
+    /**
+     * @param \Hynage\MVC\Controller\Front $front
+     * @return \Hynage\MVC\View
+     */
+    public function setFrontController(Front $front)
+    {
+        $this->_frontController = $front;
+        return $this;
+    }
+
+
+    /**
+     * @return \Hynage\MVC\Controller\Front|null
+     */
+    public function getFrontController()
+    {
+        return $this->_frontController;
     }
     
     
@@ -72,6 +98,12 @@ class View
     }
 
 
+    /**
+     * @param mixed $value
+     * @param mixed $ifEmptyValue
+     * @param mixed $ifNotEmptyValue
+     * @return mixed
+     */
     protected function _emptyThen($value, $ifEmptyValue, $ifNotEmptyValue = null)
     {
         if (null === $ifNotEmptyValue) {

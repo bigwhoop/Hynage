@@ -8,6 +8,7 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\MVC;
+use Hynage\Data\DataContainer;
 
 class Layout extends View
 {
@@ -15,6 +16,21 @@ class Layout extends View
      * @var string
      */
     protected $_content = null;
+
+    /**
+     * @var \Hynage\Data\DataContainer|null
+     */
+    protected $_metaTitle = null;
+
+    /**
+     * @var \Hynage\Data\DataContainer|null
+     */
+    protected $_metaKeywords = null;
+
+    /**
+     * @var \Hynage\Data\DataContainer|null
+     */
+    protected $_metaDescription = null;
     
     
     /**
@@ -40,7 +56,46 @@ class Layout extends View
     {
         return $this->_content;
     }
-    
+
+
+    /**
+     * @return \Hynage\Data\DataContainer
+     */
+    public function getMetaTitle()
+    {
+        if (!$this->_metaTitle) {
+            $this->_metaTitle = new DataContainer();
+        }
+
+        return $this->_metaTitle;
+    }
+
+
+    /**
+     * @return \Hynage\Data\DataContainer
+     */
+    public function getMetaKeywords()
+    {
+        if (!$this->_metaKeywords) {
+            $this->_metaKeywords = new DataContainer();
+        }
+
+        return $this->_metaKeywords;
+    }
+
+
+    /**
+     * @return \Hynage\Data\DataContainer
+     */
+    public function getMetaDescription()
+    {
+        if (!$this->_metaDescription) {
+            $this->_metaDescription = new DataContainer();
+        }
+
+        return $this->_metaDescription;
+    }
+
     
     /**
      * Render the layout
