@@ -57,6 +57,7 @@ class Connection
         
         $this->_pdo = new \PDO($dsn, $parts['user'], $parts['pass']);
         $this->_pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $this->_pdo->query("SET NAMES 'UTF8'");
     }
 
 
