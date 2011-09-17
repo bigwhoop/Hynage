@@ -1,10 +1,19 @@
 <?php
+/**
+ * This file is part of Hynage.
+ *
+ * (c) Philippe Gerber <philippe@bigwhoop.ch>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Hynage\Test;
 use Hynage\Config;
 
 class ConfigTest extends \PHPUnit_Framework_TestCase
 {
     private $configData = array();
+    
 
     public function setUp()
     {
@@ -74,5 +83,18 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
 
         $this->assertFalse($config->get('foo', false));
         $this->assertEquals('bar', $config->get('foo', 'bar'));
+    }
+
+
+    public function testIteration()
+    {
+        $config = new Config(array('one', 'two', 'three'));
+
+        $all = '';
+        foreach ($config as $value) {
+            $all .= $value;
+        }
+
+        $this->assertEquals('onetwothree', $all);
     }
 }
