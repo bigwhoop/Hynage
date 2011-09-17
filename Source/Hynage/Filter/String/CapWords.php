@@ -15,8 +15,13 @@ class CapWords implements FilterInterface
     public function filter($v)
     {
         $chunks = preg_split('/[-_. ]/', $v);
-        $chunks = array_map('ucfirst', array_map('strtolower', $chunks));
+        $chunks = array_map('ucfirst', array_map('mb_strtolower', $chunks));
 
-        return join('', $chunks);
+        $string = join('', $chunks);
+        if (!empty($string)) {
+            $string[0] = mb_strtolower($string[0]);
+        }
+        
+        return $string;
     }
 }

@@ -8,15 +8,12 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\Filter\MVC;
-use Hynage\Filter\FilterInterface;
+use Hynage\Filter\String\CapWords;
 
-class DefaultActionName implements FilterInterface
+class DefaultActionName extends CapWords
 {
     public function filter($v)
     {
-        $chunks = preg_split('/[-.]/', $v);
-        $chunks = array_map('ucfirst', array_map('strtolower', $chunks));
-
-        return lcfirst(join('', $chunks) . 'Action');
+        return parent::filter($v) . 'Action';
     }
 }
