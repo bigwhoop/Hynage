@@ -303,6 +303,15 @@ class Application
     {
         $this->bootstrap('frontcontroller')->dispatch($request);
     }
+
+
+    /**
+     * Init all resources for CLI
+     */
+    protected function _initCli()
+    {
+        $this->bootstrap(array('autoloader', 'pathConstants', 'includePath', 'errorHandler', 'exceptionHandler', 'phpsettings'));
+    }
     
     
     /**

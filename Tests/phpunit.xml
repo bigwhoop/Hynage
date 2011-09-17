@@ -1,0 +1,11 @@
+<phpunit bootstrap="./bootstrap.php" colors="false">
+    <testsuite name="All Tests">
+        <directory>./Hynage</directory>
+    </testsuite>
+
+    <filter>
+        <whitelist>
+            <directory suffix=".php">./Hynage/</directory>
+        </whitelist>
+    </filter>
+</phpunit>

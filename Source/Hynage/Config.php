@@ -32,11 +32,23 @@ class Config implements \Iterator
      * Getter to return a specific value.
      * 
      * @param string $key
-     * @return mixed|null|Hynage\Config
+     * @return \Hynage\Config|mixed
      */
     public function __get($key)
     {
         return $this->get($key, null, false);
+    }
+
+
+    /**
+     * @param string $key
+     * @param mixed  $value
+     * @return Config
+     */
+    public function __set($key, $value)
+    {
+        $this->set($key, $value);
+        return $this;
     }
     
     
@@ -47,6 +59,7 @@ class Config implements \Iterator
      * @param string $key
      * @param mixed $defaultValue
      * @param string|false $separator
+     * @return \Hynage\Config|mixed
      */
     public function get($key, $defaultValue = null, $separator = '.')
     {
@@ -71,6 +84,11 @@ class Config implements \Iterator
     }
 
 
+    /**
+     * @param string $key
+     * @param mixed $value
+     * @return Config
+     */
     public function set($key, $value)
     {
         $this->_data[$key] = $value;
@@ -78,12 +96,20 @@ class Config implements \Iterator
     }
 
 
+    /**
+     * @param string $key
+     * @return bool
+     */
     public function has($key)
     {
         return array_key_exists($key, $this->_data);
     }
 
-    
+
+    /**
+     * @param string $key
+     * @return Config
+     */
     public function remove($key)
     {
         if ($this->has($key)) {
