@@ -310,7 +310,7 @@ class Application
      */
     protected function _initCli()
     {
-        $this->bootstrap(array('autoloader', 'pathConstants', 'includePath', 'errorHandler', 'exceptionHandler', 'phpsettings'));
+        $this->bootstrap(array('autoloader', 'pathConstants', 'includePath', 'errorHandler', 'exceptionHandler', 'phpsettings', 'i18n'));
     }
     
     
@@ -412,6 +412,15 @@ class Application
     protected function _initSession()
     {
         session_start();
+    }
+    
+
+    /**
+     * Internationalization stuff
+     */
+    protected function _initI18n()
+    {
+        mb_internal_encoding('utf-8');
     }
     
     

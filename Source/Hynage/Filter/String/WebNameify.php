@@ -20,7 +20,7 @@ class WebNameify implements FilterInterface
     {
         $v = mb_strtolower($v);
 
-        $v = str_ireplace(
+        $v = str_replace(
             array(' ', '_', 'ä', 'ö', 'ü'),
             array('-', '-', 'ae', 'oe', 'ue'),
             $v
@@ -28,7 +28,9 @@ class WebNameify implements FilterInterface
 
         $v = preg_replace('|[^a-zA-Z0-9\-]|i', '', $v);
 
-        $v = str_replace('--', '-', $v);
+        while (false != strpos($v, '--')) {
+            $v = str_replace('--', '-', $v);
+        }
 
         return $v;
     }
