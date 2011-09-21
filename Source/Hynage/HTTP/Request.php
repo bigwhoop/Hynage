@@ -108,9 +108,6 @@ class Request
         // Convert %252f to /
         $value = str_ireplace('%252F', '/', $value);
 
-        // Remove other encodings
-        $value = urldecode($value);
-
         return $value;
     }
     
