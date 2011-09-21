@@ -23,6 +23,7 @@ class WebNameifyTest extends \PHPUnit_Framework_TestCase
         $filter = new WebNameify();
         $this->assertEquals('test', $filter->filter('test'));
         $this->assertEquals('test-test', $filter->filter('test test'));
+        $this->assertEquals('test-test', $filter->filter('test   test'));
     }
 
     public function testUmlauts()
@@ -37,5 +38,11 @@ class WebNameifyTest extends \PHPUnit_Framework_TestCase
         $filter = new WebNameify();
         $this->assertEquals('tom-jones', $filter->filter('tom --- jones'));
         $this->assertEquals('tom-jones', $filter->filter('tom _-_-_ jones'));
+    }
+
+    public function testBadCharacters()
+    {
+        $filter = new WebNameify();
+        $this->assertEquals('tom-jones-1239', $filter->filter('tom $!:,.+"*ç%&/()=?``\'#@¦°§¬|¢^; jones 1239'));
     }
 }

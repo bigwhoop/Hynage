@@ -19,7 +19,10 @@ class Generic implements \Iterator, \Countable
     public function __construct($type, array $data = array())
     {
         $this->type = $type;
-        $this->data = $data;
+
+        foreach ($data as $key => $value) {
+            $this->set($key, $value);
+        }
     }
 
 

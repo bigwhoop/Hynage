@@ -23,6 +23,15 @@ class DataContainer
 
 
     /**
+     * @param array $values
+     */
+    public function __construct(array $values = array())
+    {
+        $this->appendMultiple($values);
+    }
+
+
+    /**
      * @param string $v
      * @return \Hynage\Data\DataContainer
      */
@@ -72,8 +81,17 @@ class DataContainer
     /**
      * @return string
      */
-    public function __toString()
+    public function getString()
     {
         return join($this->separator, $this->data);
+    }
+
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->getString();
     }
 }
