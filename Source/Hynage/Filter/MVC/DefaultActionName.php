@@ -14,6 +14,13 @@ class DefaultActionName extends CapWords
 {
     public function filter($v)
     {
-        return parent::filter($v) . 'Action';
+        if (empty($v)) {
+            return '';
+        }
+
+        $v = parent::filter($v);
+        $v[0] = mb_strtolower($v[0]);
+
+        return $v . 'Action';
     }
 }

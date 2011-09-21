@@ -19,7 +19,7 @@ class CapWords implements FilterInterface
 
         $string = join('', $chunks);
         if (!empty($string)) {
-            $string[0] = mb_strtolower($string[0]);
+            $string[0] = mb_strtoupper($string[0]);
         }
         
         return $string;

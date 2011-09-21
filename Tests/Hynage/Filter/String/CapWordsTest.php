@@ -16,9 +16,9 @@ class CapWordsTest extends \PHPUnit_Framework_TestCase
     {
         $filter = new CapWords();
 
-        $this->assertEquals('test', $filter->filter('TEsT'));
-        $this->assertEquals('secondTest', $filter->filter('Second-tesT'));
-        $this->assertEquals('theThirdTest', $filter->filter('the_third-test'));
-        $this->assertEquals('theFinalForthTest', $filter->filter('the_final forth-test'));
+        $this->assertEquals('Test', $filter->filter('TEsT'));
+        $this->assertEquals('SecondTest', $filter->filter('Second-tesT'));
+        $this->assertEquals('TheThirdTest', $filter->filter('the_third-test'));
+        $this->assertEquals('TheFinalForthTest', $filter->filter('the_final forth-test'));
     }
 }
