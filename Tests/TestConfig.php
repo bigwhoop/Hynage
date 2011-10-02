@@ -12,7 +12,7 @@ $config['phpSettings'] = array(
 
 // Include paths
 $config['includePaths'] = array(
-    SOURCE_PATH,
+    HYNAGE_PATH,
 );
 
 return $config;

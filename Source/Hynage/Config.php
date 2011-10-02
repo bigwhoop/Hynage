@@ -79,7 +79,8 @@ class Config implements \Iterator
                 return $defaultValue;
             }
         }
-        
+
+        // Incase we end up with an array, wrap it.
         return new self($data);
     }
 
@@ -97,12 +98,25 @@ class Config implements \Iterator
 
 
     /**
+     * @param string $value
+     * @return Config
+     */
+    public  function append($value)
+    {
+        $this->_data[] = $value;
+        return $this;
+    }
+
+
+    /**
      * @param string $key
+     * @param string|false $separator
      * @return bool
      */
-    public function has($key)
+    public function has($key, $separator = '.')
     {
-        return array_key_exists($key, $this->_data);
+        $default = uniqid();
+        return $default !== $this->get($key, $default, $separator);
     }
 
 

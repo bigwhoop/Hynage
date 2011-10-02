@@ -8,15 +8,15 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\MVC\Controller;
-use Hynage\MVC\View as View,
-    Hynage\HTTP\Request as Request,
-    Hynage\HTTP\Response as Response,
+use Hynage\MVC\View\View,
+    Hynage\HTTP\Request,
+    Hynage\HTTP\Response,
     Hynage\MVC\Controller\Front as FrontController;
 
 abstract class Action
 {
     /**
-     * @var \Hynage\MVC\View
+     * @var \Hynage\MVC\View\View
      */
     protected $_view = null;
     
@@ -39,7 +39,7 @@ abstract class Action
     /**
      * Create a new controller object
      * 
-     * @param \Hynage\MVC\View $view
+     * @param \Hynage\MVC\View\View $view
      */
     public function __construct(FrontController $front, View $view, Request $request, Response $response)
     {
@@ -78,7 +78,7 @@ abstract class Action
     /**
      * Return the view object
      * 
-     * @return \Hynage\MVC\View
+     * @return \Hynage\MVC\View\View
      */
     public function getView()
     {

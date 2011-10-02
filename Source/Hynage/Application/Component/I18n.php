@@ -7,8 +7,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Hynage\MVC\Layout;
-use Hynage;
+namespace Hynage\Application\Component;
 
-class Exception extends Hynage\Exception
-{}
+class I18n extends AbstractComponent
+{
+    public function bootstrap()
+    {
+        mb_internal_encoding('utf-8');
+    }
+}

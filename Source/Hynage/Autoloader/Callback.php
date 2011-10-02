@@ -7,22 +7,34 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Hynage\Autoloading;
+namespace Hynage\Autoloader;
 
-class NamespaceToDirectory implements Loadable
+class Callback implements Loadable
 {
     /**
      * @var string
      */
     protected $_namespace = '';
 
+    /**
+     * @var string|array|\Closure
+     */
+    protected $_callback = null;
+
 
     /**
+     * @throws \InvalidArgumentException
      * @param string $namespace
+     * @param string|array|Closure $callback
      */
-    public function __construct($namespace)
+    public function __construct($namespace, $callback)
     {
+        if (!is_callable($callback)) {
+            throw new \InvalidArgumentException('Uncallable callback passed.');
+        }
+
         $this->_namespace = trim($namespace, '\\');
+        $this->_callback = $callback;
     }
 
 
@@ -38,12 +50,11 @@ class NamespaceToDirectory implements Loadable
 
 
     /**
-     * @param string $class
+     * @param  $class
      * @return bool
      */
     public function load($class)
     {
-        $path = str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
-        return (bool)require_once $path;
+        return (bool)call_user_func($this->_callback, $class);
     }
 }

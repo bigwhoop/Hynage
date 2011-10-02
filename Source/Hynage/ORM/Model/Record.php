@@ -20,12 +20,28 @@ abstract class Record implements ExportStrategy\Exportable
     protected $_isPersistent = false;
 
     /**
+     * @var \Hynage\Database\Connection
+     */
+    static private $connection = null;
+
+
+    /**
+     * @static
+     * @param \Hynage\Database\Connection $connection
+     */
+    static public function setConnection(Connection $connection)
+    {
+        self::$connection = $connection;
+    }
+
+
+    /**
      * @static
      * @return \Hynage\Database\Connection
      */
     static public function getConnection()
     {
-        return Connection::getCurrent();
+        return self::$connection;
     }
 
     
@@ -39,7 +55,7 @@ abstract class Record implements ExportStrategy\Exportable
      */
     static public function find($sql, array $params = array(), $singleRecord = false)
     {
-        $db = Connection::getCurrent();
+        $db = static::getConnection();
         
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
@@ -50,7 +66,7 @@ abstract class Record implements ExportStrategy\Exportable
 
     static public function count($sql, array $params = array())
     {
-        $db = Connection::getCurrent();
+        $db = static::getConnection();
 
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
@@ -67,7 +83,7 @@ abstract class Record implements ExportStrategy\Exportable
      */
     static public function findWhere($sqlWhere, array $params = array(), $singleRecord = false)
     {
-        $db = Connection::getCurrent();
+        $db = static::getConnection();
         
         $sql = 'SELECT * '
              . 'FROM `%s` '
@@ -100,7 +116,7 @@ abstract class Record implements ExportStrategy\Exportable
         $cacheId = $tableName . '-' . $field;
 
         if ($load || !array_key_exists($cacheId, $cache)) {
-            $db = Connection::getCurrent();
+            $db = static::getConnection();
 
             $sql = 'SELECT * '
                  . 'FROM `%s` '
@@ -135,7 +151,7 @@ abstract class Record implements ExportStrategy\Exportable
      * @throws \LogicException
      * @return string
      */
-    public function buildWhereForPrimaryKeyFields()
+    static public function buildWhereForPrimaryKeyFields()
     {
         $pks = static::getPrimaryKeyFields();
 
@@ -161,7 +177,7 @@ abstract class Record implements ExportStrategy\Exportable
      */
     public static function findAll($orderBy = null)
     {
-        $db = Connection::getCurrent();
+        $db = static::getConnection();
         
         $sql = sprintf(
             'SELECT * FROM `%s` %s',
@@ -183,7 +199,7 @@ abstract class Record implements ExportStrategy\Exportable
      * @return \Hynage\ORM\Model\Record|\Hynage\ORM\Model\RecordCollection
      * @throws \InvalidArgumentException
      */
-    protected static function _hydrate($data, $singleRecord = false)
+    static protected function _hydrate($data, $singleRecord = false)
     {
         if ($data instanceof \PDOStatement) {
             $data = $data->fetchAll(\PDO::FETCH_ASSOC);
@@ -490,7 +506,7 @@ abstract class Record implements ExportStrategy\Exportable
      */
     public function save()
     {
-        $db = Connection::getCurrent();
+        $db = static::getConnection();
         
         $tableName  = static::getTableName();
 
@@ -570,7 +586,7 @@ abstract class Record implements ExportStrategy\Exportable
     
     public function delete()
     {
-        $db = Connection::getCurrent();
+        $db = static::getConnection();
         
         $tableName  = static::getTableName();
         

@@ -12,7 +12,7 @@ use Hynage\Config as Config;
 use Hynage\Filter;
 use Hynage\HTTP\Request as Request;
 use Hynage\Form\Element\ElementInterface as ElementInterface;
-use Hynage\MVC\View as View;
+use Hynage\MVC\View\View;
 
 
 class HtmlForm

@@ -9,18 +9,16 @@
  */
 namespace Hynage\MVC\Controller;
 use Hynage,
-    Hynage\Application as App,
-    Hynage\MVC\Controller,
-    Hynage\MVC\View as View,
-    Hynage\MVC\Layout as Layout,
-    Hynage\HTTP\Request as Request,
-    Hynage\HTTP\Response as Response,
-    Hynage\Filter;
+    Hynage\Application\ApplicationInterface as App,
+    Hynage\MVC\View\View,
+    Hynage\MVC\View\Layout,
+    Hynage\HTTP\Request,
+    Hynage\HTTP\Response;
 
 class Front
 {
     /**
-     * \Hynage\Application
+     * \Hynage\Application\ApplicationInterface
      */
     protected $_app = null;
 
@@ -45,12 +43,12 @@ class Front
     protected $_response = null;
 
     /**
-     * @var null|\Hynage\MVC\View
+     * @var null|\Hynage\MVC\View\View
      */
     protected $_view = null;
 
     /**
-     * @var null|\Hynage\MVC\Layout
+     * @var null|\Hynage\MVC\View\Layout
      */
     protected $_layout = null;
 
@@ -63,7 +61,7 @@ class Front
     /**
      * Constructor.
      *
-     * @param \Hynage\Application $app
+     * @param \Hynage\Application\ApplicationInterface $app
      */
     public function __construct(App $app)
     {
@@ -72,7 +70,7 @@ class Front
 
 
     /**
-     * @return \Hynage\Application
+     * @return \Hynage\Application\ApplicationInterface
      */
     public function getApplication()
     {
@@ -263,7 +261,7 @@ class Front
 
 
     /**
-     * @param \Hynage\MVC\View $view
+     * @param \Hynage\MVC\View\View $view
      * @return Front
      */
     public function setView(View $view)
@@ -276,7 +274,7 @@ class Front
 
 
     /**
-     * @return \Hynage\MVC\View
+     * @return \Hynage\MVC\View\View
      */
     public function getView()
     {
@@ -290,7 +288,7 @@ class Front
 
 
     /**
-     * @param \Hynage\MVC\Layout $layout
+     * @param \Hynage\MVC\View\Layout $layout
      * @return Front
      */
     public function setLayout(Layout $layout)
@@ -303,7 +301,7 @@ class Front
 
 
     /**
-     * @return \Hynage\MVC\Layout
+     * @return \Hynage\MVC\View\Layout
      */
     public function getLayout()
     {

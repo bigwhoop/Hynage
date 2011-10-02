@@ -7,10 +7,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Hynage\MVC;
+namespace Hynage\MVC\View;
 use Hynage\Data\DataContainer;
 
-class Layout extends View
+class Layout extends AbstractView
 {
     /**
      * @var string
@@ -37,7 +37,7 @@ class Layout extends View
      * Set the layout's inner content
      * 
      * @param string $content
-     * @return \Hynage\MVC\Layout
+     * @return \Hynage\MVC\View\Layout
      */
     public function setContent($content)
     {
@@ -111,7 +111,7 @@ class Layout extends View
         $path = $basePath . '/' . $layout;
         
         if ('/' == $path || !is_readable($path)) {
-            throw new Layout\Exception('Layout "' . $layout . '" was not found or could not be read at base path "' . $basePath . '".');
+            throw new InvalidViewScriptException('Layout "' . $layout . '" was not found or could not be read at base path "' . $basePath . '".');
         }
         
         ob_start();

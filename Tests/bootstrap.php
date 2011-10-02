@@ -8,17 +8,23 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\Test;
-use Hynage\Application as Application;
+use Hynage\Application\PHPUnitApplication,
+    Hynage\Autoloader;
 
 // Define project path
-define('SOURCE_PATH', realpath(__DIR__ . '/../Source'));
+define('HYNAGE_PATH', __DIR__ . '/../Source');
 
-// Include Hynage
-require SOURCE_PATH . '/Hynage/Application.php';
+// Register class loader
+require HYNAGE_PATH . '/Hynage/Autoloader/Loadable.php';
+require HYNAGE_PATH . '/Hynage/Autoloader/Composite.php';
+require HYNAGE_PATH . '/Hynage/Autoloader/NamespaceToDirectory.php';
+$autoloader = new Autoloader\Composite();
+$autoloader->addAutoloader(new Autoloader\NamespaceToDirectory('Hynage', HYNAGE_PATH));
+$autoloader->register();
 
 // Assemble path to config file
 $config = realpath(__DIR__ . '/TestConfig.php');
 
 // Start application
-$app = Application::getInstance($config);
-$app->bootstrap('cli');
+$app = new PHPUnitApplication($config);
+$app->dispatch();

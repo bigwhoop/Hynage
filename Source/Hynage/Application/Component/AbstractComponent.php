@@ -7,8 +7,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Hynage\MVC\View;
-use Hynage;
+namespace Hynage\Application\Component;
 
-class Exception extends Hynage\Exception
-{}
+abstract class AbstractComponent implements ComponentInterface
+{
+    
+}

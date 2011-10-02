@@ -19,17 +19,6 @@ class Connection
     
     
     /**
-     * Return the current database connection
-     * 
-     * @return \Hynage\Database\Connection
-     */
-    public static function getCurrent()
-    {
-        return Hynage\Application::getInstance()->bootstrap('Database');
-    }
-    
-    
-    /**
      * Create a new PDO object by a given dns (URI-style)
      * 
      * @param string $dsn

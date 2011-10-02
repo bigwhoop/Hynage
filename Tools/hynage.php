@@ -8,7 +8,7 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\Tools;
-use Hynage\Application as Application;
+use Hynage\Application\CLIApplication;
 
 $commands = array(
     'model-to-sql' => array(
