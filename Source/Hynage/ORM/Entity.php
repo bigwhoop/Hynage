@@ -7,12 +7,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Hynage\ORM\Model;
+namespace Hynage\ORM;
 use Hynage,
     Hynage\Reflection,
     Hynage\Database\Connection;
 
-abstract class Record implements ExportStrategy\Exportable
+abstract class Entity implements ExportStrategy\Exportable
 {
     /**
      * @bool
@@ -46,21 +46,21 @@ abstract class Record implements ExportStrategy\Exportable
 
     
     /**
-     * Find records by an SQL statement
+     * Find entities by an SQL statement
      * 
      * @param string $sql
      * @param array $params
-     * @param bool $singleRecord
-     * @return \Hynage\ORM\Model\Record|\Hynage\ORM\Model\RecordCollection|false
+     * @param bool $singleEntity
+     * @return \Hynage\ORM\Entity\Hynage\ORM\EntityCollection|false
      */
-    static public function find($sql, array $params = array(), $singleRecord = false)
+    static public function find($sql, array $params = array(), $singleEntity = false)
     {
         $db = static::getConnection();
         
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
         
-        return self::_hydrate($stmt, $singleRecord);
+        return self::_hydrate($stmt, $singleEntity);
     }
 
 
@@ -78,13 +78,13 @@ abstract class Record implements ExportStrategy\Exportable
     /**
      * @param string $sqlWhere
      * @param array $params
-     * @param bool $singleRecord
-     * @return \Hynage\ORM\Model\Record|\Hynage\ORM\Model\RecordCollection|false
+     * @param bool $singleEntity
+     * @return \Hynage\ORM\Entity\Hynage\ORM\EntityCollection|false
      */
-    static public function findWhere($sqlWhere, array $params = array(), $singleRecord = false)
+    static public function findWhere($sqlWhere, array $params = array(), $singleEntity = false)
     {
         $db = static::getConnection();
-        
+
         $sql = 'SELECT * '
              . 'FROM `%s` '
              . 'WHERE %s';
@@ -93,8 +93,8 @@ abstract class Record implements ExportStrategy\Exportable
 
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
-
-        return static::_hydrate($stmt, $singleRecord);
+        
+        return static::_hydrate($stmt, $singleEntity);
     }
 
 
@@ -102,7 +102,7 @@ abstract class Record implements ExportStrategy\Exportable
      * @param string $field
      * @param mixed $value
      * @param bool $load
-     * @return \Hynage\ORM\Model\Record|false
+     * @return \Hynage\ORM\Entity|false
      */
     static public function findOneBy($field, $value, $load = false)
     {
@@ -136,10 +136,10 @@ abstract class Record implements ExportStrategy\Exportable
     
     
     /**
-     * Find a specific record by its primary key
+     * Find a specific Entity by its primary key
      * 
      * @param int|array $id
-     * @return \Hynage\ORM\Model\Record|false
+     * @return \Hynage\ORM\Entity|false
      */
     public static function findOne($id)
     {
@@ -170,10 +170,10 @@ abstract class Record implements ExportStrategy\Exportable
     
     
     /**
-     * Find all records of this model
+     * Find all entities of this model
      *
      * @param string|null $orderBy
-     * @return \Hynage\ORM\Model\RecordCollection
+     * @return \Hynage\ORM\EntityCollection
      */
     public static function findAll($orderBy = null)
     {
@@ -195,11 +195,11 @@ abstract class Record implements ExportStrategy\Exportable
      * Puts an data into Model objects of the called class.
      *
      * @param \PDOStatement|array $data
-     * @param bool $singleRecord
-     * @return \Hynage\ORM\Model\Record|\Hynage\ORM\Model\RecordCollection
+     * @param bool $singleEntity
+     * @return \Hynage\ORM\Entity\Hynage\ORM\EntityCollection
      * @throws \InvalidArgumentException
      */
-    static protected function _hydrate($data, $singleRecord = false)
+    static protected function _hydrate($data, $singleEntity = false)
     {
         if ($data instanceof \PDOStatement) {
             $data = $data->fetchAll(\PDO::FETCH_ASSOC);
@@ -207,7 +207,7 @@ abstract class Record implements ExportStrategy\Exportable
             throw new \InvalidArgumentException('First argument must either be an array or an instance of \PDOStatement.');
         }
         
-        $records = new RecordCollection();
+        $entities = new EntityCollection();
         $class = get_called_class();
         
         foreach ((array)$data as $values) {
@@ -219,15 +219,15 @@ abstract class Record implements ExportStrategy\Exportable
             $obj->_isPersistent = true;
             $obj->populate($values);
             
-            $records->add($obj);
+            $entities->add($obj);
         }
         
-        // Only one record is expected. Or false if none found.
-        if ($singleRecord) {
-            return count($records) ? $records->get(0) : false;
+        // Only one Entity is expected. Or false if none found.
+        if ($singleEntity) {
+            return count($entities) ? $entities->get(0) : false;
         }
         
-        return $records;
+        return $entities;
     }
 
 
@@ -243,7 +243,7 @@ abstract class Record implements ExportStrategy\Exportable
             $class = $class->getParentClass();
         }
 
-        throw new Record\InvalidDefinitionException('Could not find class with table/field definition.');
+        throw new Entity\InvalidDefinitionException('Could not find class with table/field definition.');
     }
     
     
@@ -266,7 +266,7 @@ abstract class Record implements ExportStrategy\Exportable
     /**
      * Return the primary key field(s)
      * 
-     * @return \Hynage\ORM\Model\Record\Field|array|false
+     * @return \Hynage\ORM\Entity\Field|array|false
      */
     public static function getPrimaryKeyFields()
     {
@@ -317,7 +317,7 @@ abstract class Record implements ExportStrategy\Exportable
                 $attributes['default']   = $property->getAnnotation('HynageColumnDefault');
             }
             
-            $fields[] = new Record\Field($name, $propertyName, $type, $length, $attributes);
+            $fields[] = new Entity\Field($name, $propertyName, $type, $length, $attributes);
         }
         
         return $fields;
@@ -355,7 +355,7 @@ abstract class Record implements ExportStrategy\Exportable
             if (isset($definition['type'])) {
                 if ($definition['type'] == 'enum') {
                     if (!isset($definition['values'])) {
-                        throw new Record\InvalidDefinitionException("Missing 'values' property in @HynageColumn annotation for enum data type $name.");
+                        throw new Entity\InvalidDefinitionException("Missing 'values' property in @HynageColumn annotation for enum data type $name.");
                     }
 
                     $enumValues = array();
@@ -409,11 +409,11 @@ abstract class Record implements ExportStrategy\Exportable
 
     public function getValue($field)
     {
-        if (!$field instanceof Record\Field) {
+        if (!$field instanceof Entity\Field) {
             $fieldName = $field;
             $field = $this->getFieldByName($field);
             if (!$field) {
-                throw new Record\InvalidDefinitionException('No such field: ' . $fieldName);
+                throw new Entity\InvalidDefinitionException('No such field: ' . $fieldName);
             }
         }
         
@@ -421,7 +421,7 @@ abstract class Record implements ExportStrategy\Exportable
 
         $reflectionClass = new \ReflectionClass(get_called_class());
         if (!$reflectionClass->hasProperty($property)) {
-            throw new Record\InvalidDefinitionException('No such field: ' . $field->getName());
+            throw new Entity\InvalidDefinitionException('No such field: ' . $field->getName());
         }
 
         return $this->$property;
@@ -429,9 +429,9 @@ abstract class Record implements ExportStrategy\Exportable
 
 
     /**
-     * Export this record. Default is array.
+     * Export this Entity. Default is array.
      *
-     * @param \Hynage\ORM\Model\ExportStrategy\Exporting $strategy
+     * @param \Hynage\ORM\ExportStrategy\Exporting $strategy
      * @return mixed
      */
     public function export(ExportStrategy\Exporting $strategy = null)
@@ -440,7 +440,7 @@ abstract class Record implements ExportStrategy\Exportable
             $strategy = new ExportStrategy\ArrayStrategy();
         }
 
-        return $strategy->exportRecord($this);
+        return $strategy->exportEntity($this);
     }
     
     
@@ -448,7 +448,7 @@ abstract class Record implements ExportStrategy\Exportable
      * Set the properties given by a key/value array
      * 
      * @param array $values
-     * @return \Hynage\ORM\Model\Record
+     * @return \Hynage\ORM\Entity
      */
     public function populate(array $values)
     {
@@ -502,7 +502,7 @@ abstract class Record implements ExportStrategy\Exportable
     
 
     /**
-     * @return \Hynage\ORM\Model\Record
+     * @return \Hynage\ORM\Entity
      */
     public function save()
     {

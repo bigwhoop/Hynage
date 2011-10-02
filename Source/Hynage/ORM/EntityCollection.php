@@ -7,17 +7,21 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Hynage\ORM\Model;
+namespace Hynage\ORM;
 use Hynage\Data\Generic;
 
-class RecordCollection extends Generic implements ExportStrategy\Exportable
+class EntityCollection extends Generic implements ExportStrategy\Exportable
 {
-    public function __construct(array $data = array(), $type = '\\Hynage\\ORM\\Model\\Record')
+    public function __construct(array $data = array(), $type = '\\Hynage\\ORM\\Entity')
     {
         parent::__construct($type, $data);
     }
 
 
+    /**
+     * @param \Hynage\ORM\Entity|mixed $default
+     * @return null
+     */
     public function getRandom($default = null)
     {
         if (!$this->count()) {
@@ -29,9 +33,9 @@ class RecordCollection extends Generic implements ExportStrategy\Exportable
 
 
     /**
-     * Export this record collection. Default is array.
+     * Export this Entity collection. Default is array.
      *
-     * @param \Hynage\ORM\Model\ExportStrategy\Exporting $strategy
+     * @param \Hynage\ORM\ExportStrategy\Exporting $strategy
      * @return mixed
      */
     public function export(ExportStrategy\Exporting $strategy = null)

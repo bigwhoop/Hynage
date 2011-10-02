@@ -7,9 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Hynage\ORM\Model\ExportStrategy;
+namespace Hynage\ORM\Entity;
 
-interface Exportable
-{
-    public function export(Exporting $strategy);
-}
+class InvalidDefinitionException extends \Hynage\Exception
+{}

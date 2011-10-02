@@ -11,5 +11,6 @@ namespace Hynage\Application;
 
 interface ApplicationInterface
 {
-    
+    public function setUp();
+    public function bootstrap($componentNames = null);
 }

@@ -57,12 +57,6 @@ abstract class AbstractApplication implements ApplicationInterface
     {
         $this->setConfig($config);
     }
-
-
-    /**
-     * @abstract
-     */
-    abstract public function setUp();
     
     
     /**
@@ -93,26 +87,6 @@ abstract class AbstractApplication implements ApplicationInterface
         }
         
         $this->_config = $config;
-
-        /*// Constants
-        $constants = $config->get('constants', new Config())->getData();
-        if (!empty($constants)) {
-            foreach ($constants as $key => $value) {
-                define($key, $value);
-            }
-        }
-
-        // User include paths
-        $userIncludePaths = $config->get('includePaths', new Config())->getData();
-        if (!empty($userIncludePaths)) {
-            $this->addIncludePath($userIncludePaths);
-        }
-
-        // User autoloaders
-        $callbacks = $this->getConfig()->get('autoloaders', new Config())->getData();
-        foreach ($callbacks as $loader) {
-            $this->addAutoloader($loader);
-        }*/
         
         return $this;
     }
@@ -132,6 +106,7 @@ abstract class AbstractApplication implements ApplicationInterface
     /**
      * @param string $name
      * @param Component\ComponentInterface $component
+     * @param array $dependencies
      * @return AbstractApplication
      */
     public function addComponent($name, Component\ComponentInterface $component, array $dependencies = array())

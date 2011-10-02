@@ -10,7 +10,7 @@
 namespace Hynage\Application\Component;
 use Hynage\Config,
     Hynage\Database\Connection,
-    Hynage\ORM\Model\Record;
+    Hynage\ORM\Entity;
 
 class Database extends AbstractComponent
 {
@@ -37,7 +37,7 @@ class Database extends AbstractComponent
         $connection = new Connection($this->config->get('uri'));
 
         // Close your eyes. This is evil as hell... no time to rebuild ATM.
-        Record::setConnection($connection);
+        Entity::setConnection($connection);
 
         return $connection;
     }

@@ -7,12 +7,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Hynage\ORM\Model\ExportStrategy;
-use Hynage\ORM\Model\Record,
-    Hynage\ORM\Model\RecordCollection;
+namespace Hynage\ORM\ExportStrategy;
+use Hynage\ORM\Entity,
+    Hynage\ORM\EntityCollection;
 
 interface Exporting
 {
-    public function exportRecord(Record $obj);
-    public function exportCollection(RecordCollection $coll);
+    public function exportEntity(Entity $obj);
+    public function exportCollection(EntityCollection $coll);
 }

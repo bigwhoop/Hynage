@@ -18,7 +18,7 @@ class WebApplication extends AbstractApplication
         $config = $this->getConfig();
 
         $errorHandler     = new Component\ErrorHandler();
-        $exceptionHandler = new Component\ExceptionHandler();
+        $exceptionHandler = new Component\ExceptionHandler($this, $config->get('frontController'));
         $pathConstants    = new Component\PathConstants();
         $database         = new Component\Database($config->get('database'));
         $session          = new Component\Session($config->get('session.lifetime', 0));
