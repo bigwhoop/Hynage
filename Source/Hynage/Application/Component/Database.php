@@ -35,6 +35,8 @@ class Database extends AbstractComponent
     public function bootstrap()
     {
         $connection = new Connection($this->config->get('uri'));
+
+        // Close your eyes. This is evil as hell... no time to rebuild ATM.
         Record::setConnection($connection);
 
         return $connection;
