@@ -36,13 +36,13 @@ class PHPUnitApplication extends AbstractApplication
             $phpSettings->addSetting($key, $value);
         }
 
-        $this->addComponent('autoloader', $autoloader)
-             ->addComponent('errorHandler', $errorHandler)
-             ->addComponent('exceptionHandler', $exceptionHandler)
-             ->addComponent('pathConstants', $pathConstants)
-             ->addComponent('includePath', $includePath, array('pathConstants', 'phpSettings'))
-             ->addComponent('phpSettings', $phpSettings)
-             ->addComponent('i18n', $i18n);
+        $this->setComponent('autoloader', $autoloader)
+             ->setComponent('errorHandler', $errorHandler)
+             ->setComponent('exceptionHandler', $exceptionHandler)
+             ->setComponent('pathConstants', $pathConstants)
+             ->setComponent('includePath', $includePath, array('pathConstants', 'phpSettings'))
+             ->setComponent('phpSettings', $phpSettings)
+             ->setComponent('i18n', $i18n);
     }
 
 

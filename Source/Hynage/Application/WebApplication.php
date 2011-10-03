@@ -40,16 +40,16 @@ class WebApplication extends AbstractApplication
             $phpSettings->addSetting($key, $value);
         }
 
-        $this->addComponent('autoloader', $autoloader)
-             ->addComponent('errorHandler', $errorHandler)
-             ->addComponent('exceptionHandler', $exceptionHandler)
-             ->addComponent('pathConstants', $pathConstants)
-             ->addComponent('includePath', $includePath, array('pathConstants', 'phpSettings'))
-             ->addComponent('session', $session, array('phpSettings'))
-             ->addComponent('phpSettings', $phpSettings)
-             ->addComponent('database', $database)
-             ->addComponent('i18n', $i18n)
-             ->addComponent('frontController', $frontController, array('database', 'autoloader', 'includePath', 'session', 'errorHandler', 'exceptionHandler'));
+        $this->setComponent('autoloader', $autoloader)
+             ->setComponent('errorHandler', $errorHandler)
+             ->setComponent('exceptionHandler', $exceptionHandler)
+             ->setComponent('pathConstants', $pathConstants)
+             ->setComponent('includePath', $includePath, array('pathConstants', 'phpSettings'))
+             ->setComponent('session', $session, array('phpSettings'))
+             ->setComponent('phpSettings', $phpSettings)
+             ->setComponent('database', $database)
+             ->setComponent('i18n', $i18n)
+             ->setComponent('frontController', $frontController, array('database', 'autoloader', 'includePath', 'session', 'errorHandler', 'exceptionHandler'));
     }
 
 

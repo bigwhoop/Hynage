@@ -46,7 +46,7 @@ class IncludePath extends AbstractComponent
         foreach ($this->includePaths as $userPath) {
             $paths[] = $userPath;
         }
-
+        
         set_include_path(join(PATH_SEPARATOR, $paths));
     }
 }

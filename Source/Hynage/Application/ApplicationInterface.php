@@ -13,4 +13,6 @@ interface ApplicationInterface
 {
     public function setUp();
     public function bootstrap($componentNames = null);
+    public function setConfig($config);
+    public function getConfig();
 }

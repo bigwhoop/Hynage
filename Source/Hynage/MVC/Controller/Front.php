@@ -8,8 +8,8 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\MVC\Controller;
-use Hynage,
-    Hynage\Application\ApplicationInterface as App,
+use Hynage\Application\ApplicationInterface as App,
+    Hynage\Config,
     Hynage\MVC\View\View,
     Hynage\MVC\View\Layout,
     Hynage\HTTP\Request,
@@ -279,7 +279,7 @@ class Front
     public function getView()
     {
         if (!$this->_view) {
-            $config = $this->getApplication()->getConfig()->get('view', new Hynage\Config());
+            $config = $this->getApplication()->getConfig()->get('view', new Config());
             $this->setView(new View($config));
         }
 
@@ -306,7 +306,7 @@ class Front
     public function getLayout()
     {
         if (!$this->_layout) {
-            $config = $this->getApplication()->getConfig()->get('layout', new Hynage\Config());
+            $config = $this->getApplication()->getConfig()->get('layout', new Config());
             $this->setLayout(new Layout($config));
         }
 

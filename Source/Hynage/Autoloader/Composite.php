@@ -9,6 +9,8 @@
  */
 namespace Hynage\Autoloader;
 
+require_once __DIR__ . '/Loadable.php';
+
 class Composite implements Loadable
 {
     /**

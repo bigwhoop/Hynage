@@ -109,7 +109,7 @@ abstract class AbstractApplication implements ApplicationInterface
      * @param array $dependencies
      * @return AbstractApplication
      */
-    public function addComponent($name, Component\ComponentInterface $component, array $dependencies = array())
+    public function setComponent($name, Component\ComponentInterface $component, array $dependencies = array())
     {
         $name = mb_strtolower($name);
         

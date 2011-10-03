@@ -10,14 +10,14 @@
 namespace Hynage\Application\Component;
 use Hynage\HTTP,
     Hynage\Config,
-    Hynage\Application\ApplicationInterface;
+    Hynage\Application\WebApplication;
 
 class ExceptionHandler extends AbstractComponent
 {
     /**
-     * @var \Hynage\Application\ApplicationInterface|null
+     * @var \Hynage\Application\WebApplication|null
      */
-    private $application = null;
+    private $webApp = null;
 
     /**
      * @var \Hynage\Config|null
@@ -26,12 +26,12 @@ class ExceptionHandler extends AbstractComponent
 
 
     /**
-     * @param \Hynage\Application\ApplicationInterface $application
+     * @param \Hynage\Application\WebApplication $webApp|null
      * @param \Hynage\Config|null $config
      */
-    public function __construct(ApplicationInterface $application, Config $config = null)
+    public function __construct(WebApplication $webApp = null, Config $config = null)
     {
-        $this->application = $application;
+        $this->webApp = $webApp;
 
         if (!$config) {
             $config = new Config();
@@ -42,19 +42,30 @@ class ExceptionHandler extends AbstractComponent
 
     public function bootstrap()
     {
-        set_exception_handler(array($this, 'handleException'));
+        if (php_sapi_name() == 'cli' || !$this->webApp) {
+            $callback = array($this, 'onExceptionAbort');
+        } else {
+            $callback = array($this, 'onExceptionShowErrorPage');
+        }
+
+        set_exception_handler($callback);
     }
 
 
     /**
      * @param \Exception $e
      */
-    public function handleException(\Exception $e)
+    public function onExceptionAbort(\Exception $e)
     {
-        if (php_sapi_name() == 'cli') {
-            exit((string)$e);
-        }
-        
+        exit((string)$e);
+    }
+
+
+    /**
+     * @param \Exception $e
+     */
+    public function onExceptionShowErrorPage(\Exception $e)
+    {
         try {
             $errorUrl = sprintf(
                 "/%s/%s",
@@ -64,9 +75,10 @@ class ExceptionHandler extends AbstractComponent
 
             $request = new HTTP\Request($errorUrl);
             $request->setParam('exception', $e);
-            $this->application->bootstrap('frontController')->dispatch($request);
+            
+            $this->webApp->dispatch($request);
         } catch (\Exception $e2) {
-            exit($e);
+            $this->onExceptionAbort($e);
         }
     }
 }
