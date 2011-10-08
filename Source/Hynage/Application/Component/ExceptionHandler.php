@@ -57,7 +57,13 @@ class ExceptionHandler extends AbstractComponent
      */
     public function onExceptionAbort(\Exception $e)
     {
-        exit((string)$e);
+        echo 'Sorry, something went terribly wrong. :/';
+
+        if (ini_get('display_errors')) {
+            echo (string)$e;
+        }
+
+        exit();
     }
 
 
