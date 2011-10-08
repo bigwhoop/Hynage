@@ -12,14 +12,37 @@ namespace Hynage\Data;
 class Session implements \ArrayAccess
 {
     /**
-     * @var array
-     */
-    private $data = array();
-
-    /**
      * @var bool
      */
     private $isStarted = false;
+
+    /**
+     * @var null|Session
+     */
+    static protected $instance = null;
+
+
+    /**
+     * @static
+     * @return Session
+     */
+    static public function getInstance()
+    {
+        if (!static::$instance) {
+            $class = get_called_class();
+            static::$instance = new $class();
+        }
+
+        return static::$instance;
+    }
+
+
+    private function __construct()
+    {}
+    
+
+    private function __clone()
+    {}
 
 
     /**
@@ -34,6 +57,10 @@ class Session implements \ArrayAccess
             throw new \LogicException('Session already started.');
         }
 
+        if (session_id()) {
+            throw new \LogicException('PHP session already started.');
+        }
+
         if (!empty($sessionName)) {
             session_name($sessionName);
         }
@@ -41,12 +68,10 @@ class Session implements \ArrayAccess
         if (!empty($sessionId)) {
             session_id($sessionId);
         }
-        
+
         session_start();
 
         $this->isStarted = true;
-
-        $this->importDataFromSessionArray();
 
         return $this;
     }
@@ -78,19 +103,6 @@ class Session implements \ArrayAccess
             $cookieParams['secure']
         );
         
-        return $this;
-    }
-
-
-    /**
-     * @return Session
-     */
-    private function importDataFromSessionArray()
-    {
-        foreach ($_SESSION as $key => $value) {
-            $this->data[$key] = $value;
-        }
-
         return $this;
     }
 
@@ -131,7 +143,7 @@ class Session implements \ArrayAccess
             $this->start();
         }
 
-        return array_key_exists($key, $this->data);
+        return array_key_exists($key, $_SESSION);
     }
 
 
@@ -160,7 +172,7 @@ class Session implements \ArrayAccess
             throw new \OutOfBoundsException('Invalid key. No data set.');
         }
 
-        return $this->data[$key];
+        return $_SESSION[$key];
     }
 
 
@@ -185,7 +197,7 @@ class Session implements \ArrayAccess
             $this->start();
         }
 
-        $this->data[$key] = $value;
+        $_SESSION[$key] = $value;
 
         return $this;
     }
@@ -201,7 +213,7 @@ class Session implements \ArrayAccess
         }
 
         if ($this->offsetExists($offset)) {
-            unset($this->data[$offset]);
+            unset($_SESSION[$offset]);
         }
     }
 }
