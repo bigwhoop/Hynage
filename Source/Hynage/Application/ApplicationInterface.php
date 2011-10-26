@@ -13,6 +13,15 @@ interface ApplicationInterface
 {
     public function setUp();
     public function bootstrap($componentNames = null);
+
+    /**
+     * @param string|array|\Hynage\Config $config
+     * @return ApplicationInterface
+     */
     public function setConfig($config);
+
+    /**
+     * @return \Hynage\Config
+     */
     public function getConfig();
 }

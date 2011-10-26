@@ -92,9 +92,19 @@ abstract class AbstractView
      * @param \DateTime $dt
      * @return string
      */
-    protected function _dateTime(\DateTime $dt)
+    protected function dateTime(\DateTime $dt)
     {
         return $dt->format('d.m.Y H:i');
+    }
+
+
+    /**
+     * @param string $string
+     * @return string
+     */
+    protected function escape($string)
+    {
+        return htmlentities($string);
     }
 
 
@@ -104,7 +114,7 @@ abstract class AbstractView
      * @param mixed $ifNotEmptyValue
      * @return mixed
      */
-    protected function _emptyThen($value, $ifEmptyValue, $ifNotEmptyValue = null)
+    protected function emptyThen($value, $ifEmptyValue, $ifNotEmptyValue = null)
     {
         if (null === $ifNotEmptyValue) {
             $ifNotEmptyValue = $value;
