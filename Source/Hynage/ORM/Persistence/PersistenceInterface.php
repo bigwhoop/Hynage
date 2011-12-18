@@ -14,6 +14,7 @@ interface PersistenceInterface
 {
     public function store(Entity $entity);
     public function delete(Entity $entity);
-    public function findOne($entityType, $value);
-    public function findOneBy($entityType, $field, $value);
+    public function findOne($entityType, $pkValue);
+    public function findOneBy($entityType, array $constraints);
+    public function findBy($entityType, array $constraints, $limit = null, $offset = null);
 }

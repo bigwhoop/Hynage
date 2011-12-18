@@ -41,6 +41,14 @@ class Database extends AbstractComponent
 
         $em = new EntityManager($persister);
 
+        if ($this->config->has('entityNameFormatter')) {
+            $em->setEntityNameFormatter($this->config->get('entityNameFormatter'));
+        }
+
+        if ($this->config->has('repositoryNameFormatter')) {
+            $em->setRepositoryNameFormatter($this->config->get('repositoryNameFormatter'));
+        }
+
         // Close your eyes. This is evil as hell... no time to rebuild ATM.
         // @deprecated
         Entity::setConnection($connection);

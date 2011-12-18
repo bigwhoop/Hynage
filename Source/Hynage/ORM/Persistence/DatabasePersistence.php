@@ -52,70 +52,121 @@ class DatabasePersistence implements PersistenceInterface
 
     /**
      * @param string $entityType
-     * @param scalar|array $value
+     * @param scalar|array $values
      * @return Entity|false
      */
-    public function findOne($entityType, $value)
+    public function findOne($entityType, $values)
     {
-        if (!is_array($value)) {
-            $value = array($value);
+        if (!is_array($values)) {
+            $values = array($values);
         }
 
-        return $this->findWhere($entityType, $this->buildWhereForPrimaryKeyFields($entityType), $value, true);
+        $pks = $this->getPrimaryKeyFields($entityType);
+
+        if (count($pks) != count($values)) {
+            throw new \InvalidArgumentException("The given value(s) do not match the number of primary keys of '$entityType'.");
+        }
+
+        $constraints = array();
+        foreach ($pks as $pk) {
+            $constraints[$pk->getName()] = array_shift($values);
+        }
+
+        return $this->findOneBy($entityType, $constraints);
     }
 
 
     /**
      * @param string $entityType
-     * @param string $field
-     * @param string $value
+     * @param array $constraints
      * @return Entity|false
      */
-    public function findOneBy($entityType, $field, $value)
+    public function findOneBy($entityType, array $constraints)
     {
-        if (empty($value)) {
-            return false;
-        }
-
         $tableName = $this->getTableName($entityType);
 
         $db = $this->getConnection();
 
+        $placeholders = array();
+        foreach (array_keys($constraints) as $fieldName) {
+            $field = $this->getFieldByProperty($entityType, $fieldName);
+            if ($field) {
+                $fieldName = $field->getName();
+            }
+
+            $placeholders[] = "`$fieldName` = ?";
+        }
+
         $sql = 'SELECT * '
              . 'FROM `%s` '
-             . 'WHERE `%s` = ?'
+             . 'WHERE %s '
              . 'LIMIT 1';
 
-        $sql = sprintf($sql, $tableName, $field);
+        $sql = sprintf(
+            $sql,
+            $tableName,
+            join(' AND ', $placeholders)
+        );
+
+        $values = array_values($constraints);
 
         $stmt = $db->prepare($sql);
-        $stmt->execute((array)$value);
+        $stmt->execute($values);
 
         return $this->hydrate($entityType, $stmt, true);
     }
 
 
     /**
-     * @param Entity|string $entityType
-     * @param string $sqlWhere
-     * @param array $params
-     * @param bool $singleEntity
-     * @return Entity|EntityCollection|false
+     * @param string $entityType
+     * @param array $constraints
+     * @param int|null $limit
+     * @param int|null $offset
+     * @return EntityCollection
      */
-    public function findWhere($entityType, $sqlWhere, array $params = array(), $singleEntity = false)
+    public function findBy($entityType, array $constraints, $limit = null, $offset = null)
     {
+        $tableName = $this->getTableName($entityType);
+
         $db = $this->getConnection();
+
+        $placeholders = array();
+        foreach (array_keys($constraints) as $fieldName) {
+            $field = $this->getFieldByProperty($entityType, $fieldName);
+            if ($field) {
+                $fieldName = $field->getName();
+            }
+
+            $placeholders[] = "`$fieldName` = ?";
+        }
+
+        $values = array_values($constraints);
 
         $sql = 'SELECT * '
              . 'FROM `%s` '
-             . 'WHERE %s';
+             . 'WHERE %s ';
 
-        $sql = sprintf($sql, $this->getTableName($entityType), $sqlWhere);
+        if (is_int($limit)) {
+            if (is_int($offset)) {
+                $sql .= 'LIMIT %d, %d';
+                $values[] = $offset;
+                $values[] = $limit;
+            } else {
+                $sql .= 'LIMIT %d';
+                $values[] = $limit;
+            }
+        }
+
+        $sql = sprintf(
+            $sql,
+            $tableName,
+            join(' AND ', $placeholders)
+        );
 
         $stmt = $db->prepare($sql);
-        $stmt->execute($params);
+        $stmt->execute($values);
 
-        return $this->hydrate($entityType, $stmt, $singleEntity);
+        return $this->hydrate($entityType, $stmt);
     }
 
 
@@ -307,6 +358,40 @@ class DatabasePersistence implements PersistenceInterface
         }
 
         return $pks;
+    }
+
+
+    /**
+     * @param string|Entity $entityType
+     * @param string $fieldName
+     * @return \Hynage\ORM\Entity\Field|false
+     */
+    public function getFieldByName($entityType, $fieldName)
+    {
+        foreach ($this->getFieldDefinitions($entityType) as $field) {
+            if ($field->getName() === $fieldName) {
+                return $field;
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * @param string|Entity $entityType
+     * @param string $propertyName
+     * @return \Hynage\ORM\Entity\Field|false
+     */
+    public function getFieldByProperty($entityType, $propertyName)
+    {
+        foreach ($this->getFieldDefinitions($entityType) as $field) {
+            if ($field->getProperty() === $propertyName) {
+                return $field;
+            }
+        }
+
+        return false;
     }
 
 
