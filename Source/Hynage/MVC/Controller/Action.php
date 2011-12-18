@@ -154,15 +154,25 @@ abstract class Action
         return $this;
     }
     
-    
+
+    /**
+     * @param string $script
+     * @return Action
+     */
     public function renderViewScriptAndSendJson($script)
     {
         $content = $this->getView()->render($script, false);
         
-        $this->sendJson($content, 200, false);
+        return $this->sendJson($content, 200, false);
     }
     
-    
+
+    /**
+     * @param string $content
+     * @param int $code
+     * @param bool $encode
+     * @return Action
+     */
     public function sendJson($content, $code = 200, $encode = true)
     {
         if ($encode) {
@@ -174,6 +184,8 @@ abstract class Action
     	$response->appendBody($content)
     	         ->setHeader('content-type', 'application/json', $code, true)
     	         ->send(true);
+
+        return $this;
     }
 
     
@@ -199,6 +211,10 @@ abstract class Action
     }
 
 
+    /**
+     * @param bool $exit
+     * @return string
+     */
     public function reload($exit = true)
     {
         $url = $this->getRequest()->getHeader('REQUEST_URI', '/');
@@ -206,6 +222,12 @@ abstract class Action
     }
 
 
+    /**
+     * Translation placeholder
+     *
+     * @param string $string
+     * @return mixed
+     */
     public function _($string)
     {
         $args = func_get_args();

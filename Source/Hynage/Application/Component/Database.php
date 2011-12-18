@@ -10,7 +10,9 @@
 namespace Hynage\Application\Component;
 use Hynage\Config,
     Hynage\Database\Connection,
-    Hynage\ORM\Entity;
+    Hynage\ORM\Entity,
+    Hynage\ORM\Persistence\DatabasePersistence,
+    Hynage\ORM\EntityManager;
 
 class Database extends AbstractComponent
 {
@@ -30,15 +32,19 @@ class Database extends AbstractComponent
 
 
     /**
-     * @return \Hynage\Database\Connection
+     * @return EntityManager
      */
     public function bootstrap()
     {
         $connection = new Connection($this->config->get('uri'));
+        $persister  = new DatabasePersistence($connection);
+
+        $em = new EntityManager($persister);
 
         // Close your eyes. This is evil as hell... no time to rebuild ATM.
+        // @deprecated
         Entity::setConnection($connection);
 
-        return $connection;
+        return $em;
     }
 }

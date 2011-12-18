@@ -8,7 +8,8 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\Application;
-use Hynage\Config;
+use Hynage\Config,
+    Hynage\Application\Component\ComponentInterface;
 
 abstract class AbstractApplication implements ApplicationInterface
 {
@@ -222,7 +223,9 @@ abstract class AbstractApplication implements ApplicationInterface
             }
 
             // Bootstrap component
+            $this->preBootstrap($component);
             $this->_componentResults[$componentName] = $component->bootstrap();
+            $this->postBootstrap($component);
             
             unset($this->_currentComponents[$componentName]);
         }
@@ -233,5 +236,24 @@ abstract class AbstractApplication implements ApplicationInterface
         }
 
         return 1 == count($results) ? current($results) : $results;
+    }
+
+
+    /**
+     * Pre-bootstrap event
+     *
+     * @param Component\ComponentInterface $component
+     */
+    public function preBootstrap(ComponentInterface $component)
+    {}
+
+
+    /**
+     * Post-bootstrap event
+     *
+     * @param Component\ComponentInterface $component
+     */
+    public function postBootstrap(ComponentInterface $component)
+    {
     }
 }

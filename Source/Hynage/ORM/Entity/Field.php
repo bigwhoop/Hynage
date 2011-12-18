@@ -37,7 +37,14 @@ class Field
      */
     protected $_attributes = array();
     
-    
+
+    /**
+     * @param string $name
+     * @param string $property
+     * @param string $type
+     * @param int $length
+     * @param array $attributes
+     */
     public function __construct($name, $property, $type, $length, array $attributes)
     {
         $this->_name       = $name;

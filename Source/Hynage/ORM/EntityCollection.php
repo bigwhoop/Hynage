@@ -32,6 +32,16 @@ class EntityCollection extends Generic implements ExportStrategy\Exportable
     }
 
 
+    public function getFirst($default = false)
+    {
+        if (!$this->count()) {
+            return $default;
+        }
+
+        return array_pop($this->data);
+    }
+
+
     /**
      * Export this Entity collection. Default is array.
      *

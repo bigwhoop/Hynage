@@ -231,9 +231,14 @@ abstract class Entity implements ExportStrategy\Exportable
     }
 
 
-    static protected function _getBaseClassName()
+    /**
+     * @return string
+     * @throws Entity\InvalidDefinitionException
+     */
+    static public function getClassNameOfEntityDefinition()
     {
         $class = new \ReflectionClass(get_called_class());
+
         while ($class instanceof \ReflectionClass)
         {
             if (false !== strpos($class->getDocComment(), 'HynageTable')) {
@@ -255,7 +260,7 @@ abstract class Entity implements ExportStrategy\Exportable
      */
     public static function getTableName()
     {
-        $reflectionClass = new Reflection\ReflectionClass(self::_getBaseClassName());
+        $reflectionClass = new Reflection\ReflectionClass(self::getClassNameOfEntityDefinition());
         return $reflectionClass->getAnnotation('HynageTable');
     }
 
@@ -266,8 +271,10 @@ abstract class Entity implements ExportStrategy\Exportable
     /**
      * Return the primary key field(s)
      * 
-     * @return \Hynage\ORM\Entity\Field|array|false
+     * @return array
      */
+
+
     public static function getPrimaryKeyFields()
     {
         $pks = array();
@@ -277,7 +284,7 @@ abstract class Entity implements ExportStrategy\Exportable
                 $pks[] = $field;
             }
         }
-        
+
         return $pks;
     }
     
@@ -286,7 +293,7 @@ abstract class Entity implements ExportStrategy\Exportable
     {
         $fields = array();
 
-        $reflectionClass = new Reflection\ReflectionClass(self::_getBaseClassName());
+        $reflectionClass = new Reflection\ReflectionClass(self::getClassNameOfEntityDefinition());
         foreach ($reflectionClass->getProperties(\ReflectionMethod::IS_PROTECTED) as $property) {
             $definition = $property->getAnnotation('HynageColumn');
             if (!is_array($definition)) {
@@ -339,7 +346,7 @@ abstract class Entity implements ExportStrategy\Exportable
         $primaryKeys = array();
         
         // Add columns
-        $reflectionClass = new Reflection\ReflectionClass(self::_getBaseClassName());
+        $reflectionClass = new Reflection\ReflectionClass(self::getClassNameOfEntityDefinition());
         foreach ($reflectionClass->getProperties() as $property) {
             $definition = $property->getAnnotation('HynageColumn');
             if (!is_array($definition)) {
@@ -395,6 +402,10 @@ abstract class Entity implements ExportStrategy\Exportable
     }
 
 
+    /**
+     * @param string $name
+     * @return \Hynage\ORM\Entity\Field|false
+     */
     public function getFieldByName($name)
     {
         foreach (static::getFieldDefinitions() as $field) {
@@ -407,6 +418,11 @@ abstract class Entity implements ExportStrategy\Exportable
     }
 
 
+    /**
+     * @param \Hynage\ORM\Entity\Field|string $field
+     * @return mixed
+     * @throws Entity\InvalidDefinitionException
+     */
     public function getValue($field)
     {
         if (!$field instanceof Entity\Field) {
@@ -425,6 +441,35 @@ abstract class Entity implements ExportStrategy\Exportable
         }
 
         return $this->$property;
+    }
+
+
+    /**
+     * @param \Hynage\ORM\Entity\Field|string $field
+     * @param mixed $value
+     * @return Entity
+     * @throws Entity\InvalidDefinitionException
+     */
+    public function setValue($field, $value)
+    {
+        if (!$field instanceof Entity\Field) {
+            $fieldName = $field;
+            $field = $this->getFieldByName($field);
+            if (!$field) {
+                throw new Entity\InvalidDefinitionException('No such field: ' . $fieldName);
+            }
+        }
+
+        $property = $field->getProperty();
+
+        $reflectionClass = new \ReflectionClass(get_called_class());
+        if (!$reflectionClass->hasProperty($property)) {
+            throw new Entity\InvalidDefinitionException('No such field: ' . $field->getName());
+        }
+
+        $this->$property = $value;
+
+        return $this;
     }
 
 
@@ -499,112 +544,30 @@ abstract class Entity implements ExportStrategy\Exportable
     {
         return $this->_isPersistent;
     }
-    
+
 
     /**
-     * @return \Hynage\ORM\Entity
+     * @param bool $bool
+     * @return Entity
      */
-    public function save()
+    public function setIsPersistent($bool)
     {
-        $db = static::getConnection();
-        
-        $tableName  = static::getTableName();
-
-        $values = array();
-        $autoIncrementField = null;
-        foreach (static::getFieldDefinitions() as $field) {
-            if ($field->isAutoIncrement()) {
-                $autoIncrementField = $field;
-                continue;
-            }
-            
-            $value = $this->getValue($field);
-            
-            // Skip non-NOT-NULL-fields with NULL value
-            if (null === $value && !$field->isNotNull()) {
-                continue;
-            }
-
-            // Set default value
-            if (null === $value) {
-                $value = $field->getDefaultValue();
-            }
-            
-            if ($value instanceof \DateTime) {
-                $value = $value->format('Y-m-d H:i:s');
-            }
-            
-            $values[$field->getName()] = $value;
-        }
-        
-        // Insert
-        if (!$this->isPersistent()) {
-            $placeholders = array_pad(array(), count($values), '?');
-            
-            $sql = sprintf(
-                "INSERT INTO `%s` (%s) VALUES (%s)",
-                $tableName,
-                '`' . join('`, `', array_keys($values)) . '`',
-                join(', ', $placeholders)
-            );
-            
-            $stmt = $db->prepare($sql);
-            $stmt->execute(array_values($values));
-            
-            if (null !== $autoIncrementField) {
-                $this->{$autoIncrementField->getProperty()} = $db->getAdapter()->lastInsertId();
-            }
-
-            $this->_isPersistent = true;
-        }
-        
-        // Update
-        else {
-            $placeholders = array();
-            foreach (array_keys($values) as $field) {
-                $placeholders[] = "`$field` = ?";
-            }
-            
-            $sql = sprintf(
-                "UPDATE `%s` SET %s WHERE %s LIMIT 1",
-                $tableName,
-                join(', ', $placeholders),
-                static::buildWhereForPrimaryKeyFields()
-            );
-
-            foreach (static::getPrimaryKeyFields() as $pk) {
-                $values[$pk->getName()] = $this->{$pk->getProperty()};
-            }
-
-            $stmt = $db->prepare($sql);
-            $stmt->execute(array_values($values));
-        }
-        
+        $this->_isPersistent = (bool)$bool;
         return $this;
     }
-    
-    
-    public function delete()
+
+
+    /**
+     * @return string
+     */
+    public function getEntityHash()
     {
-        $db = static::getConnection();
-        
-        $tableName  = static::getTableName();
-        
-        $sql = sprintf(
-            "DELETE FROM `%s` WHERE %s LIMIT 1",
-            $tableName,
-            static::buildWhereForPrimaryKeyFields()
-        );
+        $hash = static::getTableName();
 
-        $params = array();
-        foreach (static::getPrimaryKeyFields() as $pk) {
-            $params[$pk->getName()] = $this->{$pk->getProperty()};
+        foreach (static::getPrimaryKeyFields() as $field) {
+            $hash .= '-' . $field->getName() . '=' . $this->getValue($field);
         }
-        $params = array_values($params);
 
-        $stmt = $db->prepare($sql);
-        $stmt->execute($params);
-        
-        return $this;
+        return $hash;
     }
 }
