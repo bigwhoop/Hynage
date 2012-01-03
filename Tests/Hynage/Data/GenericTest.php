@@ -23,7 +23,7 @@ class GenericTest extends \PHPUnit_Framework_TestCase
     public function testInt()
     {
         $data = new Generic('int', array(1, 12, 32));
-        $this->assertType('int', $data->get(0));
+        $this->assertInternalType('int', $data->get(0));
         $this->assertEquals(32, $data->get(2));
     }
 
@@ -40,7 +40,7 @@ class GenericTest extends \PHPUnit_Framework_TestCase
     public function testString()
     {
         $data = new Generic('string', array('foo', 'bar', 'baz'));
-        $this->assertType('string', $data->get(0));
+        $this->assertInternalType('string', $data->get(0));
         $this->assertEquals('bar', $data->get(1));
     }
 
@@ -64,8 +64,8 @@ class GenericTest extends \PHPUnit_Framework_TestCase
             )
         );
 
-        $this->assertType('array', $data->get(0));
-        $this->assertType('array', $data->get(1));
+        $this->assertInternalType('array', $data->get(0));
+        $this->assertInternalType('array', $data->get(1));
     }
 
     public function testBadArray()
@@ -88,8 +88,8 @@ class GenericTest extends \PHPUnit_Framework_TestCase
             )
         );
 
-        $this->assertType('\Hynage\Data\Generic', $data->get(0));
-        $this->assertType('\Hynage\Data\Generic', $data->get(1));
+        $this->assertInstanceOf('\Hynage\Data\Generic', $data->get(0));
+        $this->assertInstanceOf('\Hynage\Data\Generic', $data->get(1));
     }
 
     public function testBadObject()

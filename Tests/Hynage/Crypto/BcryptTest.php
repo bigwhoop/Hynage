@@ -20,7 +20,7 @@ class BcryptTest extends \PHPUnit_Framework_TestCase
 
         $hash = $bcrypt->hashPassword(self::PLAIN, 8);
 
-        $this->assertType('string', $hash);
+        $this->assertInternalType('string', $hash);
         $this->assertStringStartsWith('$2a$08$', $hash);
         $this->assertEquals(60, mb_strlen($hash));
 

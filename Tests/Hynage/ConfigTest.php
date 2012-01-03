@@ -33,15 +33,15 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
     {
         $config = new Config($this->configData);
 
-        $this->assertType('string', $config->get('str'));
-        $this->assertType('int', $config->get('int'));
-        $this->assertType('float', $config->get('float'));
-        $this->assertType('bool', $config->get('true'));
+        $this->assertInternalType('string', $config->get('str'));
+        $this->assertInternalType('int', $config->get('int'));
+        $this->assertInternalType('float', $config->get('float'));
+        $this->assertInternalType('bool', $config->get('true'));
         $this->assertTrue($config->get('true'));
-        $this->assertType('bool', $config->get('false'));
+        $this->assertInternalType('bool', $config->get('false'));
         $this->assertFalse($config->get('false'));
-        $this->assertType('array', $config->get('array')->getData());
-        $this->assertType('\Closure', $config->get('func'));
+        $this->assertInternalType('array', $config->get('array')->getData());
+        $this->assertInstanceOf('\Closure', $config->get('func'));
     }
 
 

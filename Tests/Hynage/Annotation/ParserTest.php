@@ -36,7 +36,7 @@ CMT;
     {
         $value = $this->parser->getAnnotation('SingleValueAnnotation');
 
-        $this->assertType('string', $value);
+        $this->assertInternalType('string', $value);
         $this->assertEquals('foo', $value);
     }
 
@@ -44,15 +44,15 @@ CMT;
     {
         $value = $this->parser->getAnnotation('MultiValueAnnotation');
 
-        $this->assertType('array', $value);
+        $this->assertInternalType('array', $value);
 
         $this->assertArrayHasKey('foo', $value);
-        $this->assertType('string', $value['foo']);
+        $this->assertInternalType('string', $value['foo']);
         $this->assertEquals('bar', $value['foo']);
 
 
         $this->assertArrayHasKey('baz', $value);
-        $this->assertType('int', $value['baz']);
+        $this->assertInternalType('int', $value['baz']);
         $this->assertEquals(12, $value['baz']);
     }
 }
