@@ -18,7 +18,7 @@ class EntityRepository
 
 
     /**
-     * @param EntityManager $em
+     * @param \Hynage\ORM\EntityManager $em
      */
     public function __construct(EntityManager $em)
     {
@@ -27,7 +27,7 @@ class EntityRepository
 
 
     /**
-     * @return EntityManager
+     * @return \Hynage\ORM\EntityManager
      */
     public function getEntityManager()
     {

@@ -12,6 +12,10 @@ use Hynage\Data\Generic;
 
 class EntityCollection extends Generic implements ExportStrategy\Exportable
 {
+    /**
+     * @param array $data
+     * @param string $type
+     */
     public function __construct(array $data = array(), $type = '\\Hynage\\ORM\\Entity')
     {
         parent::__construct($type, $data);
@@ -32,6 +36,10 @@ class EntityCollection extends Generic implements ExportStrategy\Exportable
     }
 
 
+    /**
+     * @param mixed $default
+     * @return mixed
+     */
     public function getFirst($default = false)
     {
         if (!$this->count()) {
@@ -58,12 +66,20 @@ class EntityCollection extends Generic implements ExportStrategy\Exportable
     }
 
 
+    /**
+     * @param string $keyFieldName
+     * @param string $valueFieldName
+     * @return array
+     */
     public function toKeyValueArray($keyFieldName, $valueFieldName)
     {
         return $this->export(new ExportStrategy\KeyValueArrayStrategy($keyFieldName, $valueFieldName));
     }
 
 
+    /**
+     * @return int
+     */
     public function count()
     {
         return count($this->data);
@@ -76,24 +92,36 @@ class EntityCollection extends Generic implements ExportStrategy\Exportable
     }
 
 
+    /**
+     * @return mixed
+     */
     public function next()
     {
         return next($this->data);
     }
 
 
+    /**
+     * @return bool
+     */
     public function valid()
     {
         return null !== $this->key();
     }
 
 
+    /**
+     * @return string|int|null
+     */
     public function key()
     {
         return key($this->data);
     }
 
 
+    /**
+     * @return mixed
+     */
     public function current()
     {
         return current($this->data);

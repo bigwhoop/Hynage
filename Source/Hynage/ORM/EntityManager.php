@@ -10,7 +10,10 @@
 namespace Hynage\ORM;
 use Hynage\ORM\Entity,
     Hynage\ORM\EntityCollection,
-    Hynage\ORM\Persistence\PersistenceInterface;
+    Hynage\ORM\EntityProxyCollection,
+    Hynage\ORM\Entity\Proxy,
+    Hynage\ORM\Persistence\PersistenceInterface,
+    Hynage\Reflection\ReflectionClass;
 
 class EntityManager
 {
@@ -47,7 +50,7 @@ class EntityManager
 
     /**
      * @param Persistence\PersistenceInterface $persister
-     * @return EntityManager
+     * @return \Hynage\ORM\EntityManager
      */
     public function setPersister(PersistenceInterface $persister)
     {
@@ -67,7 +70,7 @@ class EntityManager
 
     /**
      * @param \Closure $formatter
-     * @return EntityManager
+     * @return \Hynage\ORM\EntityManager
      */
     public function setEntityNameFormatter(\Closure $formatter)
     {
@@ -78,7 +81,7 @@ class EntityManager
 
     /**
      * @param \Closure $formatter
-     * @return EntityManager
+     * @return \Hynage\ORM\EntityManager
      */
     public function setRepositoryNameFormatter(\Closure $formatter)
     {
@@ -116,18 +119,21 @@ class EntityManager
     
 
     /**
-     * @param Entity $entity
-     * @return EntityManager
+     * @param \Hynage\ORM\Entity $entity
+     * @return \Hynage\ORM\EntityManager
      */
     private function addEntity(Entity $entity)
     {
         $this->entitiesPool->attach($entity);
+
+        $this->addProxies($entity);
+
         return $this;
     }
 
 
     /**
-     * @param Entity $entity
+     * @param \Hynage\ORM\Entity $entity
      * @return bool
      */
     private function hasEntity(Entity $entity)
@@ -137,8 +143,8 @@ class EntityManager
 
 
     /**
-     * @param Entity $entity
-     * @return EntityManager
+     * @param \Hynage\ORM\Entity $entity
+     * @return \Hynage\ORM\EntityManager
      */
     public function removeEntity(Entity $entity)
     {
@@ -151,9 +157,31 @@ class EntityManager
 
 
     /**
+     * @param \Hynage\ORM\Entity $entity
+     * @return \Hynage\ORM\EntityManager
+     */
+    private function addProxies(Entity $entity)
+    {
+        $reflectionClass = new ReflectionClass($entity::getClassNameOfEntityDefinition());
+
+        foreach ($reflectionClass->getProperties(\ReflectionMethod::IS_PROTECTED) as $property) {
+            $definition = $property->getAnnotation('HynageRelation');
+            if (!is_array($definition)) {
+                continue;
+            }
+
+            $proxy = new Proxy($this, $entity, $definition['class'], $definition['local'], $definition['foreign'], $definition['type']);
+            $entity->setProxy($property->name, $proxy);
+        }
+
+        return $this;
+    }
+
+
+    /**
      * @param string $entityType
      * @param string|array $primaryKey
-     * @return Entity|false
+     * @return \Hynage\ORM\Entity|false
      */
     public function findEntity($entityType, $primaryKey)
     {
@@ -172,7 +200,7 @@ class EntityManager
     /**
      * @param string $entityType
      * @param array $constraints
-     * @return Entity|false
+     * @return \Hynage\ORM\Entity|false
      */
     public function findEntityBy($entityType, array $constraints)
     {
@@ -191,15 +219,16 @@ class EntityManager
     /**
      * @param string $entityType
      * @param array $constraints
+     * @param string|null $orderBy
      * @param int|null $limit
      * @param int|null $offset
-     * @return EntityCollection
+     * @return \Hynage\ORM\EntityCollection
      */
-    public function findEntitiesBy($entityType, array $constraints, $limit = null, $offset = null)
+    public function findEntitiesBy($entityType, array $constraints, $orderBy = null, $limit = null, $offset = null)
     {
         $entityType = $this->formatEntityName($entityType);
 
-        $entities = $this->getPersister()->findBy($entityType, $constraints, $limit, $offset);
+        $entities = $this->getPersister()->findBy($entityType, $constraints, $orderBy, $limit, $offset);
 
         foreach ($entities as $entity) {
             $this->addEntity($entity);
@@ -210,8 +239,28 @@ class EntityManager
 
 
     /**
-     * @param Entity $entity
-     * @return EntityManager
+     * @param string $entityType
+     * @param string $query
+     * @param array $params
+     * @return \Hynage\ORM\EntityCollection
+     */
+    public function queryEntities($entityType, $query, array $params = array())
+    {
+        $entityType = $this->formatEntityName($entityType);
+
+        $entities = $this->getPersister()->query($entityType, $query, $params);
+
+        foreach ($entities as $entity) {
+            $this->addEntity($entity);
+        }
+
+        return $entities;
+    }
+
+
+    /**
+     * @param \Hynage\ORM\Entity $entity
+     * @return \Hynage\ORM\EntityManager
      */
     public function persist(Entity $entity)
     {
@@ -223,8 +272,8 @@ class EntityManager
 
 
     /**
-     * @param Entity $entity
-     * @return EntityManager
+     * @param \Hynage\ORM\Entity $entity
+     * @return \Hynage\ORM\EntityManager
      */
     public function delete(Entity $entity)
     {

@@ -9,226 +9,21 @@
  */
 namespace Hynage\ORM;
 use Hynage,
-    Hynage\Reflection,
-    Hynage\Database\Connection;
+    Hynage\Reflection\ReflectionClass,
+    Hynage\ORM\Entity\Field,
+    Hynage\ORM\Entity\Proxy;
 
 abstract class Entity implements ExportStrategy\Exportable
 {
     /**
      * @bool
      */
-    protected $_isPersistent = false;
+    protected $isPersistent = false;
 
     /**
-     * @var \Hynage\Database\Connection
+     * @var array
      */
-    static private $connection = null;
-
-
-    /**
-     * @static
-     * @param \Hynage\Database\Connection $connection
-     */
-    static public function setConnection(Connection $connection)
-    {
-        self::$connection = $connection;
-    }
-
-
-    /**
-     * @static
-     * @return \Hynage\Database\Connection
-     */
-    static public function getConnection()
-    {
-        return self::$connection;
-    }
-
-    
-    /**
-     * Find entities by an SQL statement
-     * 
-     * @param string $sql
-     * @param array $params
-     * @param bool $singleEntity
-     * @return \Hynage\ORM\Entity\Hynage\ORM\EntityCollection|false
-     */
-    static public function find($sql, array $params = array(), $singleEntity = false)
-    {
-        $db = static::getConnection();
-        
-        $stmt = $db->prepare($sql);
-        $stmt->execute($params);
-        
-        return self::_hydrate($stmt, $singleEntity);
-    }
-
-
-    static public function count($sql, array $params = array())
-    {
-        $db = static::getConnection();
-
-        $stmt = $db->prepare($sql);
-        $stmt->execute($params);
-
-        return 0 + $stmt->fetchColumn();
-    }
-
-
-    /**
-     * @param string $sqlWhere
-     * @param array $params
-     * @param bool $singleEntity
-     * @return \Hynage\ORM\Entity\Hynage\ORM\EntityCollection|false
-     */
-    static public function findWhere($sqlWhere, array $params = array(), $singleEntity = false)
-    {
-        $db = static::getConnection();
-
-        $sql = 'SELECT * '
-             . 'FROM `%s` '
-             . 'WHERE %s';
-
-        $sql = sprintf($sql, static::getTableName(), $sqlWhere);
-
-        $stmt = $db->prepare($sql);
-        $stmt->execute($params);
-        
-        return static::_hydrate($stmt, $singleEntity);
-    }
-
-
-    /**
-     * @param string $field
-     * @param mixed $value
-     * @param bool $load
-     * @return \Hynage\ORM\Entity|false
-     */
-    static public function findOneBy($field, $value, $load = false)
-    {
-        if (empty($value)) {
-            return false;
-        }
-
-        $tableName = static::getTableName();
-
-        static $cache = array();
-        $cacheId = $tableName . '-' . $field;
-
-        if ($load || !array_key_exists($cacheId, $cache)) {
-            $db = static::getConnection();
-
-            $sql = 'SELECT * '
-                 . 'FROM `%s` '
-                 . 'WHERE `%s` = ?'
-                 . 'LIMIT 1';
-
-            $sql = sprintf($sql, $tableName, $field);
-
-            $stmt = $db->prepare($sql);
-            $stmt->execute((array)$value);
-
-            $cache[$cacheId] = self::_hydrate($stmt, true);
-        }
-
-        return $cache[$cacheId];
-    }
-    
-    
-    /**
-     * Find a specific Entity by its primary key
-     * 
-     * @param int|array $id
-     * @return \Hynage\ORM\Entity|false
-     */
-    public static function findOne($id)
-    {
-        return static::findWhere(static::buildWhereForPrimaryKeyFields(), array($id), true);
-    }
-
-
-    /**
-     * @throws \LogicException
-     * @return string
-     */
-    static public function buildWhereForPrimaryKeyFields()
-    {
-        $pks = static::getPrimaryKeyFields();
-
-        if (!count($pks)) {
-            throw new \LogicException('There is no primary key defined.');
-        }
-
-        $wheres = array();
-        foreach ($pks as $pk) {
-            $wheres[] = sprintf('`%s` = ?', $pk->getName());
-        }
-        
-        return ' (' . join(' AND ', $wheres) . ') ';
-    }
-
-    
-    
-    /**
-     * Find all entities of this model
-     *
-     * @param string|null $orderBy
-     * @return \Hynage\ORM\EntityCollection
-     */
-    public static function findAll($orderBy = null)
-    {
-        $db = static::getConnection();
-        
-        $sql = sprintf(
-            'SELECT * FROM `%s` %s',
-            static::getTableName(),
-            empty($orderBy) ? '' : "ORDER BY $orderBy"
-        );
-        
-        $stmt = $db->query($sql);
-        
-        return self::_hydrate($stmt);
-    }
-    
-
-    /**
-     * Puts an data into Model objects of the called class.
-     *
-     * @param \PDOStatement|array $data
-     * @param bool $singleEntity
-     * @return \Hynage\ORM\Entity\Hynage\ORM\EntityCollection
-     * @throws \InvalidArgumentException
-     */
-    static protected function _hydrate($data, $singleEntity = false)
-    {
-        if ($data instanceof \PDOStatement) {
-            $data = $data->fetchAll(\PDO::FETCH_ASSOC);
-        } elseif (!is_array($data)) {
-            throw new \InvalidArgumentException('First argument must either be an array or an instance of \PDOStatement.');
-        }
-        
-        $entities = new EntityCollection();
-        $class = get_called_class();
-        
-        foreach ((array)$data as $values) {
-            if (!is_array($values)) {
-                continue;
-            }
-            
-            $obj = new $class;
-            $obj->_isPersistent = true;
-            $obj->populate($values);
-            
-            $entities->add($obj);
-        }
-        
-        // Only one Entity is expected. Or false if none found.
-        if ($singleEntity) {
-            return count($entities) ? $entities->get(0) : false;
-        }
-        
-        return $entities;
-    }
+    private $proxies = array();
 
 
     /**
@@ -249,85 +44,6 @@ abstract class Entity implements ExportStrategy\Exportable
         }
 
         throw new Entity\InvalidDefinitionException('Could not find class with table/field definition.');
-    }
-    
-    
-    /**
-     * Return the table name defined by the '@HynageTable' annotation in
-     * the class's doc block.
-     * 
-     * @return string
-     */
-    public static function getTableName()
-    {
-        $reflectionClass = new Reflection\ReflectionClass(self::getClassNameOfEntityDefinition());
-        return $reflectionClass->getAnnotation('HynageTable');
-    }
-
-
-
-    
-    
-    /**
-     * Return the primary key field(s)
-     * 
-     * @return array
-     */
-
-
-    public static function getPrimaryKeyFields()
-    {
-        $pks = array();
-
-        foreach (self::getFieldDefinitions() as $field) {
-            if ($field->isPrimary()) {
-                $pks[] = $field;
-            }
-        }
-
-        return $pks;
-    }
-    
-    
-    public static function getFieldDefinitions()
-    {
-        $fields = array();
-
-        $reflectionClass = new Reflection\ReflectionClass(self::getClassNameOfEntityDefinition());
-        foreach ($reflectionClass->getProperties(\ReflectionMethod::IS_PROTECTED) as $property) {
-            $definition = $property->getAnnotation('HynageColumn');
-            if (!is_array($definition)) {
-                continue;
-            }
-            
-            $propertyName = $property->name;
-            
-            $name = isset($definition['name'])
-                  ? $definition['name']
-                  : ltrim($property->name, '_');
-            
-            $type = isset($definition['type'])
-                  ? strtoupper($definition['type'])
-                  : 'VARCHAR';
-            
-            $length = isset($definition['length'])
-                    ? (int)$definition['length']
-                    : null;
-            
-            $attributes = array();
-            $attributes['unsigned']      = $property->hasAnnotation('HynageColumnUnsigned');
-            $attributes['notNull']       = $property->hasAnnotation('HynageColumnNotNull');
-            $attributes['autoIncrement'] = $property->hasAnnotation('HynageColumnAutoIncrement');
-            $attributes['primary']       = $property->hasAnnotation('HynageColumnPrimary');
-
-            if ($property->hasAnnotation('HynageColumnDefault')) {
-                $attributes['default']   = $property->getAnnotation('HynageColumnDefault');
-            }
-            
-            $fields[] = new Entity\Field($name, $propertyName, $type, $length, $attributes);
-        }
-        
-        return $fields;
     }
     
     
@@ -404,17 +120,41 @@ abstract class Entity implements ExportStrategy\Exportable
 
     /**
      * @param string $name
-     * @return \Hynage\ORM\Entity\Field|false
+     * @param Entity\Proxy $proxy
+     * @return Entity
      */
-    public function getFieldByName($name)
+    public function setProxy($name, Proxy $proxy)
     {
-        foreach (static::getFieldDefinitions() as $field) {
-            if ($field->getName() === $name) {
-                return $field;
-            }
+        $this->proxies[$name] = $proxy;
+        return $this;
+    }
+
+
+    /**
+     * @param $name
+     * @return Entity\Proxy
+     * @throws \OutOfBoundsException
+     */
+    public function getProxy($name)
+    {
+        if (!isset($this->proxies[$name])) {
+            throw new \OutOfBoundsException("No proxy with name '$name' available.");
         }
 
-        return false;
+        return $this->proxies[$name];
+    }
+
+
+    /**
+     * @param string $name
+     * @return Entity
+     */
+    public function resolveProxy($name)
+    {
+        $proxy = $this->getProxy($name);
+        $this->$name = $proxy->load();
+
+        return $this;
     }
 
 
@@ -425,14 +165,10 @@ abstract class Entity implements ExportStrategy\Exportable
      */
     public function getValue($field)
     {
-        if (!$field instanceof Entity\Field) {
-            $fieldName = $field;
-            $field = $this->getFieldByName($field);
-            if (!$field) {
-                throw new Entity\InvalidDefinitionException('No such field: ' . $fieldName);
-            }
+        if (!$field instanceof Field) {
+            $field = static::getFieldByName($field);
         }
-        
+
         $property = $field->getProperty();
 
         $reflectionClass = new \ReflectionClass(get_called_class());
@@ -447,17 +183,13 @@ abstract class Entity implements ExportStrategy\Exportable
     /**
      * @param \Hynage\ORM\Entity\Field|string $field
      * @param mixed $value
-     * @return Entity
+     * @return \Hynage\ORM\Entity
      * @throws Entity\InvalidDefinitionException
      */
     public function setValue($field, $value)
     {
-        if (!$field instanceof Entity\Field) {
-            $fieldName = $field;
-            $field = $this->getFieldByName($field);
-            if (!$field) {
-                throw new Entity\InvalidDefinitionException('No such field: ' . $fieldName);
-            }
+        if (!$field instanceof Field) {
+            $field = static::getFieldByName($field);
         }
 
         $property = $field->getProperty();
@@ -491,15 +223,20 @@ abstract class Entity implements ExportStrategy\Exportable
     
     /**
      * Set the properties given by a key/value array
-     * 
+     *
+     * @param array $fields
      * @param array $values
      * @return \Hynage\ORM\Entity
      */
-    public function populate(array $values)
+    public function populate(array $fields, array $values)
     {
         $keys = array_keys($values);
         
-        foreach (self::getFieldDefinitions() as $field) {
+        foreach ($fields as $field) {
+            if (!$field instanceof Field) {
+                throw new \InvalidArgumentException("First argument must be an array containing only instances of 'Hynage\\ORM\\Entity\\Field'.");
+            }
+
             if (!in_array($field->getName(), $keys)) {
                 continue;
             }
@@ -542,32 +279,124 @@ abstract class Entity implements ExportStrategy\Exportable
      */
     public function isPersistent()
     {
-        return $this->_isPersistent;
+        return $this->isPersistent;
     }
 
 
     /**
      * @param bool $bool
-     * @return Entity
+     * @return \Hynage\ORM\Entity
      */
     public function setIsPersistent($bool)
     {
-        $this->_isPersistent = (bool)$bool;
+        $this->isPersistent = (bool)$bool;
         return $this;
     }
 
 
     /**
+     * Return the table name defined by the '@HynageTable' annotation.
+     *
      * @return string
      */
-    public function getEntityHash()
+    static public function getTableName()
     {
-        $hash = static::getTableName();
+        $reflectionClass = new ReflectionClass(static::getClassNameOfEntityDefinition());
+        return $reflectionClass->getAnnotation('HynageTable');
+    }
 
-        foreach (static::getPrimaryKeyFields() as $field) {
-            $hash .= '-' . $field->getName() . '=' . $this->getValue($field);
+
+    /**
+     * @return array
+     */
+    static public function getPrimaryKeyFields()
+    {
+        $pks = array();
+
+        foreach (static::getFieldDefinitions() as $field) {
+            if ($field->isPrimary()) {
+                $pks[] = $field;
+            }
         }
 
-        return $hash;
+        return $pks;
+    }
+
+
+    /**
+     * @param string $fieldName
+     * @return \Hynage\ORM\Entity\Field|false
+     */
+    static public function getFieldByName($fieldName)
+    {
+        foreach (static::getFieldDefinitions() as $field) {
+            if ($field->getName() === $fieldName) {
+                return $field;
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * @param string $propertyName
+     * @return \Hynage\ORM\Entity\Field|false
+     */
+    static public function getFieldByProperty($propertyName)
+    {
+        foreach (static::getFieldDefinitions() as $field) {
+            if ($field->getProperty() === $propertyName) {
+                return $field;
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * @return array
+     */
+    static public function getFieldDefinitions()
+    {
+        $fields = array();
+
+        $reflectionClass = new ReflectionClass(static::getClassNameOfEntityDefinition());
+
+        foreach ($reflectionClass->getProperties(\ReflectionMethod::IS_PROTECTED) as $property) {
+            $definition = $property->getAnnotation('HynageColumn');
+            if (!is_array($definition)) {
+                continue;
+            }
+
+            $propertyName = $property->name;
+
+            $name = isset($definition['name'])
+                  ? $definition['name']
+                  : ltrim($property->name, '_');
+
+            $type = isset($definition['type'])
+                  ? strtoupper($definition['type'])
+                  : 'VARCHAR';
+
+            $length = isset($definition['length'])
+                    ? (int)$definition['length']
+                    : null;
+
+            $attributes = array();
+            $attributes['unsigned']      = $property->hasAnnotation('HynageColumnUnsigned');
+            $attributes['notNull']       = $property->hasAnnotation('HynageColumnNotNull');
+            $attributes['autoIncrement'] = $property->hasAnnotation('HynageColumnAutoIncrement');
+            $attributes['primary']       = $property->hasAnnotation('HynageColumnPrimary');
+
+            if ($property->hasAnnotation('HynageColumnDefault')) {
+                $attributes['default'] = $property->getAnnotation('HynageColumnDefault');
+            }
+
+            $fields[] = new Field($name, $propertyName, $type, $length, $attributes);
+        }
+
+        return $fields;
     }
 }

@@ -8,7 +8,8 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\ORM\Persistence;
-use Hynage\ORM\Entity;
+use Hynage\ORM\Entity,
+    Hynage\ORM\EntityManager;
 
 interface PersistenceInterface
 {
@@ -16,5 +17,6 @@ interface PersistenceInterface
     public function delete(Entity $entity);
     public function findOne($entityType, $pkValue);
     public function findOneBy($entityType, array $constraints);
-    public function findBy($entityType, array $constraints, $limit = null, $offset = null);
+    public function findBy($entityType, array $constraints, $orderBy = null, $limit = null, $offset = null);
+    public function query($entityType, $query, array $params = array());
 }

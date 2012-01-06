@@ -90,7 +90,7 @@ class Request
     public function setParam($key, $value, $type = self::METHOD_INTERNAL)
     {
         if (!in_array($type, array(self::METHOD_INTERNAL, self::METHOD_GET, self::METHOD_POST))) {
-            throw new Exception('Invalid parameter type given: ' . $type);
+            throw new \Exception('Invalid parameter type given: ' . $type);
         }
         
         $this->_params[$type][$key] = $this->normalizeValue($value);
@@ -99,6 +99,10 @@ class Request
     }
 
 
+    /**
+     * @param string $value
+     * @return string
+     */
     private function normalizeValue($value)
     {
         if (!is_scalar($value)) {
@@ -117,7 +121,12 @@ class Request
         return array_key_exists($key, $this->_params[self::METHOD_INTERNAL]);
     }
     
-    
+
+    /**
+     * @param string|null $key
+     * @param mixed $default
+     * @return mixed
+     */
     public function getParam($key, $default = null)
     {
         if (!$this->hasParam($key)) {
@@ -139,15 +148,21 @@ class Request
         return isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == self::METHOD_POST;
     }
     
-    
-    public function getGet($key = null, $default = null)
+
+    /**
+     * @param string|null $key
+     * @param mixed $default
+     * @param int $filter
+     * @return mixed
+     */
+    public function getGet($key = null, $default = null, $filter = FILTER_SANITIZE_STRING)
     {
         if (!$key) {
-            return $this->_params[self::METHOD_GET];
+            return filter_var_array($this->_params[self::METHOD_GET], $filter);
         }
 
         if (array_key_exists($key, $this->_params[self::METHOD_GET])) {
-            return $this->_params[self::METHOD_GET][$key];
+            return filter_var($this->_params[self::METHOD_GET][$key], $filter);
         }
         
         return $default;
@@ -158,16 +173,22 @@ class Request
     {
         return array_key_exists($key, $this->_params[self::METHOD_POST]);
     }
-    
-    
-    public function getPost($key = null, $default = null)
+
+
+    /**
+     * @param string|null $key
+     * @param mixed $default
+     * @param int $filter
+     * @return mixed
+     */
+    public function getPost($key = null, $default = null, $filter = FILTER_SANITIZE_STRING)
     {
         if (!$key) {
-            return $this->_params[self::METHOD_POST];
+            return filter_var_array($this->_params[self::METHOD_POST], $filter);
         }
 
         if ($this->hasPost($key)) {
-            return $this->_params[self::METHOD_POST][$key];
+            return filter_var($this->_params[self::METHOD_POST][$key], $filter);
         }
         
         return $default;

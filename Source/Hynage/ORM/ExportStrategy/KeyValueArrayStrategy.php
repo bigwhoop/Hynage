@@ -37,7 +37,6 @@ class KeyValueArrayStrategy implements Exporting
         $a = array();
         
         foreach ($coll as $obj) {
-
             $a[$obj->getValue($this->keyFieldName)] = $obj->getValue($this->valueFieldName);
         }
         

@@ -32,7 +32,7 @@ class Database extends AbstractComponent
 
 
     /**
-     * @return EntityManager
+     * @return \Hynage\ORM\EntityManager
      */
     public function bootstrap()
     {
@@ -48,10 +48,6 @@ class Database extends AbstractComponent
         if ($this->config->has('repositoryNameFormatter')) {
             $em->setRepositoryNameFormatter($this->config->get('repositoryNameFormatter'));
         }
-
-        // Close your eyes. This is evil as hell... no time to rebuild ATM.
-        // @deprecated
-        Entity::setConnection($connection);
 
         return $em;
     }

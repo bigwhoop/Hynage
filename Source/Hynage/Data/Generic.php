@@ -12,17 +12,39 @@ use Hynage\Exception\InvalidArgumentException;
 
 class Generic implements \Iterator, \Countable
 {
-    private $type = null;
+    /**
+     * @var string
+     */
+    private $type;
+
+    /**
+     * @var array
+     */
     protected $data = array();
 
 
+    /**
+     * @param string $type
+     * @param array $data
+     */
     public function __construct($type, array $data = array())
     {
-        $this->type = $type;
+        $this->type = (string)$type;
+        $this->setData($data);
+    }
 
+
+    /**
+     * @param array $data
+     * @return Generic
+     */
+    public function setData(array $data)
+    {
         foreach ($data as $key => $value) {
             $this->set($key, $value);
         }
+
+        return $this;
     }
 
 

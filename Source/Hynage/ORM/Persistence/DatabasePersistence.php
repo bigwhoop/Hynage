@@ -9,7 +9,11 @@
  */
 namespace Hynage\ORM\Persistence;
 use Hynage\ORM\Entity,
+    Hynage\ORM\EntityManager,
     Hynage\ORM\EntityCollection,
+    Hynage\ORM\EntityProxyCollection,
+    Hynage\ORM\Entity\Field,
+    Hynage\ORM\Entity\Proxy,
     Hynage\Database\Connection,
     Hynage\Reflection\ReflectionClass;
 
@@ -32,7 +36,7 @@ class DatabasePersistence implements PersistenceInterface
 
     /**
      * @param \Hynage\Database\Connection $connection
-     * @return EntityManager
+     * @return \Hynage\ORM\EntityManager
      */
     public function setConnection(Connection $connection)
     {
@@ -53,7 +57,7 @@ class DatabasePersistence implements PersistenceInterface
     /**
      * @param string $entityType
      * @param scalar|array $values
-     * @return Entity|false
+     * @return \Hynage\ORM\Entity|false
      */
     public function findOne($entityType, $values)
     {
@@ -61,7 +65,7 @@ class DatabasePersistence implements PersistenceInterface
             $values = array($values);
         }
 
-        $pks = $this->getPrimaryKeyFields($entityType);
+        $pks = $entityType::getPrimaryKeyFields();
 
         if (count($pks) != count($values)) {
             throw new \InvalidArgumentException("The given value(s) do not match the number of primary keys of '$entityType'.");
@@ -79,22 +83,28 @@ class DatabasePersistence implements PersistenceInterface
     /**
      * @param string $entityType
      * @param array $constraints
-     * @return Entity|false
+     * @return \Hynage\ORM\Entity|false
      */
     public function findOneBy($entityType, array $constraints)
     {
-        $tableName = $this->getTableName($entityType);
+        $tableName = $entityType::getTableName();
 
         $db = $this->getConnection();
 
         $placeholders = array();
         foreach (array_keys($constraints) as $fieldName) {
-            $field = $this->getFieldByProperty($entityType, $fieldName);
+            $field = $entityType::getFieldByProperty($fieldName);
             if ($field) {
                 $fieldName = $field->getName();
             }
 
-            $placeholders[] = "`$fieldName` = ?";
+            $fieldName = trim($fieldName);
+
+            if (false === strpos($fieldName, ' ')) {
+                $fieldName = "`$fieldName` = ?";
+            }
+
+            $placeholders[] = $fieldName;
         }
 
         $sql = 'SELECT * '
@@ -120,24 +130,31 @@ class DatabasePersistence implements PersistenceInterface
     /**
      * @param string $entityType
      * @param array $constraints
+     * @param string|null $orderBy
      * @param int|null $limit
      * @param int|null $offset
-     * @return EntityCollection
+     * @return \Hynage\ORM\EntityCollection
      */
-    public function findBy($entityType, array $constraints, $limit = null, $offset = null)
+    public function findBy($entityType, array $constraints, $orderBy = null, $limit = null, $offset = null)
     {
-        $tableName = $this->getTableName($entityType);
+        $tableName = $entityType::getTableName();
 
         $db = $this->getConnection();
 
         $placeholders = array();
         foreach (array_keys($constraints) as $fieldName) {
-            $field = $this->getFieldByProperty($entityType, $fieldName);
+            $field = $entityType::getFieldByProperty($fieldName);
             if ($field) {
                 $fieldName = $field->getName();
             }
 
-            $placeholders[] = "`$fieldName` = ?";
+            $fieldName = trim($fieldName);
+
+            if (false === strpos($fieldName, ' ')) {
+                $fieldName = "`$fieldName` = ?";
+            }
+
+            $placeholders[] = $fieldName;
         }
 
         $values = array_values($constraints);
@@ -146,21 +163,22 @@ class DatabasePersistence implements PersistenceInterface
              . 'FROM `%s` '
              . 'WHERE %s ';
 
+        if (is_string($orderBy)) {
+            $sql .= "ORDER BY $orderBy ";
+        }
+
         if (is_int($limit)) {
             if (is_int($offset)) {
-                $sql .= 'LIMIT %d, %d';
-                $values[] = $offset;
-                $values[] = $limit;
+                $sql .= "LIMIT $offset, " . (int)$limit;
             } else {
-                $sql .= 'LIMIT %d';
-                $values[] = $limit;
+                $sql .= 'LIMIT ' . (int)$limit;
             }
         }
 
         $sql = sprintf(
             $sql,
             $tableName,
-            join(' AND ', $placeholders)
+            count($placeholders) ? join(' AND ', $placeholders) : '1 = 1'
         );
 
         $stmt = $db->prepare($sql);
@@ -169,12 +187,28 @@ class DatabasePersistence implements PersistenceInterface
         return $this->hydrate($entityType, $stmt);
     }
 
+    /**
+     * @param string $entityType
+     * @param string $sql
+     * @param array $params
+     * @return \Hynage\ORM\EntityCollection
+     */
+    public function query($entityType, $sql, array $params = array())
+    {
+        $db = $this->getConnection();
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+
+        return $this->hydrate($entityType, $stmt);
+    }
+
 
     /**
-     * @param Entity|string $entityType
+     * @param \Hynage\ORM\Entity|string $entityType
      * @param array|\PDOStatement $data
      * @param bool $singleEntity
-     * @return EntityCollection|Entity|false
+     * @return \Hynage\ORM\EntityCollection|Entity|false
      * @throws \InvalidArgumentException
      */
     private function hydrate($entityType, $data, $singleEntity = false)
@@ -191,7 +225,7 @@ class DatabasePersistence implements PersistenceInterface
             throw new \InvalidArgumentException('Entity type must be a string.');
         }
 
-        $entities = new EntityCollection();
+        $entities = new EntityCollection(array(), $entityType);
 
         foreach ((array)$data as $values) {
             if (!is_array($values)) {
@@ -200,7 +234,7 @@ class DatabasePersistence implements PersistenceInterface
 
             $obj = new $entityType();
             $obj->setIsPersistent(true);
-            $obj->populate($values);
+            $obj->populate($entityType::getFieldDefinitions(), $values);
 
             $entities->add($obj);
         }
@@ -222,12 +256,12 @@ class DatabasePersistence implements PersistenceInterface
     {
         $db = $this->getConnection();
 
-        $tableName = $this->getTableName($entity);
+        $tableName = $entity::getTableName();
 
         $values = array();
         $autoIncrementField = null;
 
-        foreach ($this->getFieldDefinitions($entity) as $field) {
+        foreach ($entity::getFieldDefinitions() as $field) {
             if ($field->isAutoIncrement()) {
                 $autoIncrementField = $field;
                 continue;
@@ -307,7 +341,7 @@ class DatabasePersistence implements PersistenceInterface
     {
         $db = $this->getConnection();
 
-        $tableName = $this->getTableName($entity);
+        $tableName = $entity::getTableName();
 
         $sql = sprintf(
             "DELETE FROM `%s` WHERE %s LIMIT 1",
@@ -316,7 +350,7 @@ class DatabasePersistence implements PersistenceInterface
         );
 
         $params = array();
-        foreach ($this->getPrimaryKeyFields($entity) as $pk) {
+        foreach ($entity::getPrimaryKeyFields($entity) as $pk) {
             $params[$pk->getName()] = $entity->getValue($pk);
         }
         $params = array_values($params);
@@ -331,125 +365,13 @@ class DatabasePersistence implements PersistenceInterface
 
 
     /**
-     * Return the table name defined by the '@HynageTable' annotation.
-     *
-     * @param \Hynage\ORM\Entity|string $entityType
-     * @return string
-     */
-    public function getTableName($entityType)
-    {
-        $reflectionClass = new ReflectionClass($entityType::getClassNameOfEntityDefinition());
-        return $reflectionClass->getAnnotation('HynageTable');
-    }
-
-
-    /**
-     * @param \Hynage\ORM\Entity|string $entity
-     * @return array
-     */
-    public function getPrimaryKeyFields($entity)
-    {
-        $pks = array();
-
-        foreach ($this->getFieldDefinitions($entity) as $field) {
-            if ($field->isPrimary()) {
-                $pks[] = $field;
-            }
-        }
-
-        return $pks;
-    }
-
-
-    /**
-     * @param string|Entity $entityType
-     * @param string $fieldName
-     * @return \Hynage\ORM\Entity\Field|false
-     */
-    public function getFieldByName($entityType, $fieldName)
-    {
-        foreach ($this->getFieldDefinitions($entityType) as $field) {
-            if ($field->getName() === $fieldName) {
-                return $field;
-            }
-        }
-
-        return false;
-    }
-
-
-    /**
-     * @param string|Entity $entityType
-     * @param string $propertyName
-     * @return \Hynage\ORM\Entity\Field|false
-     */
-    public function getFieldByProperty($entityType, $propertyName)
-    {
-        foreach ($this->getFieldDefinitions($entityType) as $field) {
-            if ($field->getProperty() === $propertyName) {
-                return $field;
-            }
-        }
-
-        return false;
-    }
-
-
-    /**
-     * @param \Hynage\ORM\Entity|string $entity
-     * @return array
-     */
-    public function getFieldDefinitions($entity)
-    {
-        $fields = array();
-
-        $reflectionClass = new ReflectionClass($entity::getClassNameOfEntityDefinition());
-
-        foreach ($reflectionClass->getProperties(\ReflectionMethod::IS_PROTECTED) as $property) {
-            $definition = $property->getAnnotation('HynageColumn');
-            if (!is_array($definition)) {
-                continue;
-            }
-
-            $propertyName = $property->name;
-
-            $name = isset($definition['name'])
-                  ? $definition['name']
-                  : ltrim($property->name, '_');
-
-            $type = isset($definition['type'])
-                  ? strtoupper($definition['type'])
-                  : 'VARCHAR';
-
-            $length = isset($definition['length'])
-                    ? (int)$definition['length']
-                    : null;
-
-            $attributes = array();
-            $attributes['unsigned']      = $property->hasAnnotation('HynageColumnUnsigned');
-            $attributes['notNull']       = $property->hasAnnotation('HynageColumnNotNull');
-            $attributes['autoIncrement'] = $property->hasAnnotation('HynageColumnAutoIncrement');
-            $attributes['primary']       = $property->hasAnnotation('HynageColumnPrimary');
-
-            if ($property->hasAnnotation('HynageColumnDefault')) {
-                $attributes['default'] = $property->getAnnotation('HynageColumnDefault');
-            }
-
-            $fields[] = new Entity\Field($name, $propertyName, $type, $length, $attributes);
-        }
-
-        return $fields;
-    }
-
-
-    /**
      * @param \Hynage\ORM\Entity|string $entity
      * @return string
      * @throws \LogicException
      */
     public function buildWhereForPrimaryKeyFields($entity)
     {
-        $pks = $this->getPrimaryKeyFields($entity);
+        $pks = $entity::getPrimaryKeyFields();
 
         if (!count($pks)) {
             throw new \LogicException('There is no primary key defined.');
