@@ -300,7 +300,7 @@ class DatabasePersistence implements PersistenceInterface
                 $this->buildWhereForPrimaryKeyFields($entity)
             );
 
-            foreach ($this->getPrimaryKeyFields($entity) as $pk) {
+            foreach ($entity::getPrimaryKeyFields() as $pk) {
                 $values[$pk->getName()] = $entity->getValue($pk);
             }
 

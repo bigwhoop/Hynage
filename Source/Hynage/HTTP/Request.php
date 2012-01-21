@@ -158,17 +158,21 @@ class Request
     public function getGet($key = null, $default = null, $filter = FILTER_SANITIZE_STRING)
     {
         if (!$key) {
-            return filter_var_array($this->_params[self::METHOD_GET], $filter);
+            return $this->filterVariable($this->_params[self::METHOD_GET], $filter);
         }
 
         if (array_key_exists($key, $this->_params[self::METHOD_GET])) {
-            return filter_var($this->_params[self::METHOD_GET][$key], $filter);
+            return $this->filterVariable($this->_params[self::METHOD_GET][$key], $filter);
         }
         
         return $default;
     }
 
 
+    /**
+     * @param string $key
+     * @return bool
+     */
     public function hasPost($key)
     {
         return array_key_exists($key, $this->_params[self::METHOD_POST]);
@@ -184,14 +188,29 @@ class Request
     public function getPost($key = null, $default = null, $filter = FILTER_SANITIZE_STRING)
     {
         if (!$key) {
-            return filter_var_array($this->_params[self::METHOD_POST], $filter);
+            return $this->filterVariable($this->_params[self::METHOD_POST], $filter);
         }
 
         if ($this->hasPost($key)) {
-            return filter_var($this->_params[self::METHOD_POST][$key], $filter);
+            return $this->filterVariable($this->_params[self::METHOD_POST][$key], $filter);
         }
         
         return $default;
+    }
+
+
+    /**
+     * @param mixed $value
+     * @param int $filter
+     * @return mixed
+     */
+    private function filterVariable($value, $filter)
+    {
+        if (is_array($value)) {
+            return filter_var_array($value, $filter);
+        }
+
+        return filter_var($value, $filter);
     }
     
     
