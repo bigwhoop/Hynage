@@ -95,7 +95,7 @@ class Parser
             return trim($value, "'");
         }
         
-        // Numberic value
+        // Numeric value
         if (is_numeric($value)) {
             // Integer
             if (false === strpos($value, '.')) {

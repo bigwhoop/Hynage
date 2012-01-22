@@ -17,6 +17,14 @@ use Hynage\MVC\View\View;
 
 class HtmlForm
 {
+    const METHOD_POST = 'post';
+    const METHOD_GET  = 'get';
+
+    const ENCTYPE_URLENCODED = 'application/x-www-form-urlencoded';
+    const ENCTYPE_MULTIPART  = 'multipart/form-data';
+    const ENCTYPE_PLAINTEXT  = 'text/plain';
+
+
     /**
      * @var string
      */
@@ -30,7 +38,7 @@ class HtmlForm
     /**
      * @var string
      */
-    protected $_enctype = 'application/x-www-form-urlencoded';
+    protected $_enctype = self::ENCTYPE_URLENCODED;
 
     /**
      * @var \SplObjectStorage
@@ -161,6 +169,13 @@ class HtmlForm
 
     public function render()
     {
+        foreach ($this->getElements() as $element) {
+            if ($element instanceof Element\FileElement) {
+                $this->setEnctype(self::ENCTYPE_MULTIPART);
+                break;
+            }
+        }
+
         ob_start();
         ?>
 
