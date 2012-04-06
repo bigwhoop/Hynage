@@ -10,7 +10,6 @@
 namespace Hynage\ORM;
 use Hynage\ORM\Entity,
     Hynage\ORM\EntityCollection,
-    Hynage\ORM\EntityProxyCollection,
     Hynage\ORM\Entity\Proxy,
     Hynage\ORM\Persistence\PersistenceInterface,
     Hynage\Reflection\ReflectionClass;
@@ -18,9 +17,9 @@ use Hynage\ORM\Entity,
 class EntityManager
 {
     /**
-     * @var Persistence\PersistenceInterface
+     * @var array
      */
-    private $persister = null;
+    private $persisters = array();
 
     /**
      * @var \SplObjectStorage
@@ -38,33 +37,45 @@ class EntityManager
     private $repositoryNameFormatter = null;
 
 
-    /**
-     * @param Persistence\PersistenceInterface $persister
-     */
-    public function __construct(PersistenceInterface $persister)
+    public function __construct()
     {
         $this->entitiesPool = new \SplObjectStorage();
-        $this->setPersister($persister);
     }
 
 
     /**
+     * @param string $name
      * @param Persistence\PersistenceInterface $persister
      * @return \Hynage\ORM\EntityManager
      */
-    public function setPersister(PersistenceInterface $persister)
+    public function addPersister($name, PersistenceInterface $persister)
     {
-        $this->persister = $persister;
+        $this->persisters[$name] = $persister;
         return $this;
     }
 
 
     /**
+     * @param string $name
+     * @return bool
+     */
+    public function hasPersister($name)
+    {
+        return array_key_exists($name, $this->persisters);
+    }
+
+
+    /**
+     * @param string $name
      * @return Persistence\PersistenceInterface $persister
      */
-    public function getPersister()
+    public function getPersister($name)
     {
-        return $this->persister;
+        if (!$this->hasPersister($name)) {
+            throw new \OutOfBoundsException("No persister with name '$name' available.");
+        }
+
+        return $this->persisters[$name];
     }
 
 
@@ -186,8 +197,9 @@ class EntityManager
     public function findEntity($entityType, $primaryKey)
     {
         $entityType = $this->formatEntityName($entityType);
+        $persisterName = $entityType::getPersisterName();
 
-        $entity = $this->getPersister()->findOne($entityType, $primaryKey);
+        $entity = $this->getPersister($persisterName)->findOne($entityType, $primaryKey);
 
         if ($entity) {
             $this->addEntity($entity);
@@ -205,8 +217,9 @@ class EntityManager
     public function findEntityBy($entityType, array $constraints)
     {
         $entityType = $this->formatEntityName($entityType);
+        $persisterName = $entityType::getPersisterName();
 
-        $entity = $this->getPersister()->findOneBy($entityType, $constraints);
+        $entity = $this->getPersister($persisterName)->findOneBy($entityType, $constraints);
 
         if ($entity) {
             $this->addEntity($entity);
@@ -227,8 +240,9 @@ class EntityManager
     public function findEntitiesBy($entityType, array $constraints, $orderBy = null, $limit = null, $offset = null)
     {
         $entityType = $this->formatEntityName($entityType);
+        $persisterName = $entityType::getPersisterName();
 
-        $entities = $this->getPersister()->findBy($entityType, $constraints, $orderBy, $limit, $offset);
+        $entities = $this->getPersister($persisterName)->findBy($entityType, $constraints, $orderBy, $limit, $offset);
 
         foreach ($entities as $entity) {
             $this->addEntity($entity);
@@ -247,8 +261,9 @@ class EntityManager
     public function queryEntities($entityType, $query, array $params = array())
     {
         $entityType = $this->formatEntityName($entityType);
+        $persisterName = $entityType::getPersisterName();
 
-        $entities = $this->getPersister()->query($entityType, $query, $params);
+        $entities = $this->getPersister($persisterName)->query($entityType, $query, $params);
 
         foreach ($entities as $entity) {
             $this->addEntity($entity);
@@ -264,7 +279,9 @@ class EntityManager
      */
     public function persist(Entity $entity)
     {
-        $this->getPersister()->store($entity);
+        $persisterName = $entity::getPersisterName();
+
+        $this->getPersister($persisterName)->store($entity);
         $this->addEntity($entity);
 
         return $this;
@@ -277,7 +294,9 @@ class EntityManager
      */
     public function delete(Entity $entity)
     {
-        $this->getPersister()->delete($entity);
+        $persisterName = $entity::getPersisterName();
+
+        $this->getPersister($persisterName)->delete($entity);
         $this->removeEntity($entity);
 
         return $this;

@@ -182,10 +182,10 @@ class Request
     /**
      * @param string|null $key
      * @param mixed $default
-     * @param int $filter
+     * @param int|null $filter          See FILTER_* constants
      * @return mixed
      */
-    public function getPost($key = null, $default = null, $filter = FILTER_SANITIZE_STRING)
+    public function getPost($key = null, $default = null, $filter = null)
     {
         if (!$key) {
             return $this->filterVariable($this->_params[self::METHOD_POST], $filter);
@@ -201,11 +201,15 @@ class Request
 
     /**
      * @param mixed $value
-     * @param int $filter
+     * @param int|null $filter
      * @return mixed
      */
     private function filterVariable($value, $filter)
     {
+        if (null === $filter) {
+            return $value;
+        }
+        
         if (is_array($value)) {
             return filter_var_array($value, $filter);
         }

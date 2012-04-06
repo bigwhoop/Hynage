@@ -21,6 +21,11 @@ class Database extends AbstractComponent
      */
     private $config = null;
 
+    /**
+     * @var null|\Hynage\ORM\EntityManager
+     */
+    private $em = null;
+
 
     /**
      * @param \Hynage\Config $config
@@ -36,10 +41,11 @@ class Database extends AbstractComponent
      */
     public function bootstrap()
     {
-        $connection = new Connection($this->config->get('uri'));
-        $persister  = new DatabasePersistence($connection);
+        $connection  = new Connection($this->config->get('uri'));
+        $dbPersister = new DatabasePersistence($connection);
 
-        $em = new EntityManager($persister);
+        $em = new EntityManager();
+        $em->addPersister('database', $dbPersister);
 
         if ($this->config->has('entityNameFormatter')) {
             $em->setEntityNameFormatter($this->config->get('entityNameFormatter'));
@@ -49,6 +55,17 @@ class Database extends AbstractComponent
             $em->setRepositoryNameFormatter($this->config->get('repositoryNameFormatter'));
         }
 
+        $this->em = $em;
+
         return $em;
+    }
+
+
+    /**
+     * @return \Hynage\ORM\EntityManager|null
+     */
+    public function getEntityManager()
+    {
+        return $this->em;
     }
 }

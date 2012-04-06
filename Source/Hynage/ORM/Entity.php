@@ -36,7 +36,7 @@ abstract class Entity implements ExportStrategy\Exportable
 
         while ($class instanceof \ReflectionClass)
         {
-            if (false !== strpos($class->getDocComment(), 'HynageTable')) {
+            if (false !== strpos($class->getDocComment(), 'HynageEntityType')) {
                 return $class->getName();
             }
 
@@ -54,7 +54,7 @@ abstract class Entity implements ExportStrategy\Exportable
      */
     public static function generateCreateTableStatement()
     {
-        $tableName = self::getTableName();
+        $tableName = self::getEntityType();
         
         // Create table
         $sql = sprintf('CREATE TABLE `%s` (' . PHP_EOL, $tableName);
@@ -295,14 +295,26 @@ abstract class Entity implements ExportStrategy\Exportable
 
 
     /**
-     * Return the table name defined by the '@HynageTable' annotation.
+     * Return the entity type defined by the '@HynageEntityType' annotation.
      *
      * @return string
      */
-    static public function getTableName()
+    static public function getEntityType()
     {
         $reflectionClass = new ReflectionClass(static::getClassNameOfEntityDefinition());
-        return $reflectionClass->getAnnotation('HynageTable');
+        return $reflectionClass->getAnnotation('HynageEntityType');
+    }
+
+
+    /**
+     * Return the entity's persister name defined by the '@HynagePersister' annotation.
+     *
+     * @return string
+     */
+    static public function getPersisterName()
+    {
+        $reflectionClass = new ReflectionClass(static::getClassNameOfEntityDefinition());
+        return $reflectionClass->getAnnotation('HynagePersister');
     }
 
 

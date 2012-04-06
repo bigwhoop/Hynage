@@ -87,7 +87,7 @@ class DatabasePersistence implements PersistenceInterface
      */
     public function findOneBy($entityType, array $constraints)
     {
-        $tableName = $entityType::getTableName();
+        $tableName = $entityType::getEntityType();
 
         $db = $this->getConnection();
 
@@ -137,7 +137,7 @@ class DatabasePersistence implements PersistenceInterface
      */
     public function findBy($entityType, array $constraints, $orderBy = null, $limit = null, $offset = null)
     {
-        $tableName = $entityType::getTableName();
+        $tableName = $entityType::getEntityType();
 
         $db = $this->getConnection();
 
@@ -256,7 +256,7 @@ class DatabasePersistence implements PersistenceInterface
     {
         $db = $this->getConnection();
 
-        $tableName = $entity::getTableName();
+        $tableName = $entity::getEntityType();
 
         $values = array();
         $autoIncrementField = null;
@@ -341,7 +341,7 @@ class DatabasePersistence implements PersistenceInterface
     {
         $db = $this->getConnection();
 
-        $tableName = $entity::getTableName();
+        $tableName = $entity::getEntityType();
 
         $sql = sprintf(
             "DELETE FROM `%s` WHERE %s LIMIT 1",
