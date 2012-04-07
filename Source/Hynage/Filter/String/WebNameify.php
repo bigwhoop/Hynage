@@ -18,17 +18,17 @@ class WebNameify implements FilterInterface
      */
     public function filter($v)
     {
-        $v = mb_strtolower($v);
-
         $v = str_replace(
-            array(' ', '_', 'ä', 'ö', 'ü'),
-            array('-', '-', 'ae', 'oe', 'ue'),
+            array(' ', '_', 'ä', 'ö', 'ü', 'Ä', 'Ö', 'Ü'),
+            array('-', '-', 'ae', 'oe', 'ue', 'ae', 'oe', 'ue'),
             $v
         );
-
+        
+        $v = mb_strtolower($v);
+        
         $v = preg_replace('|[^a-zA-Z0-9\-]|i', '', $v);
 
-        while (false != strpos($v, '--')) {
+        while (false !== strpos($v, '--')) {
             $v = str_replace('--', '-', $v);
         }
 
