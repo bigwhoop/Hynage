@@ -53,7 +53,7 @@ abstract class AbstractView
 
     /**
      * @param \Hynage\MVC\Controller\Front $front
-     * @return \Hynage\MVC\View
+     * @return \Hynage\MVC\View\AbstractView
      */
     public function setFrontController(Front $front)
     {
@@ -76,7 +76,7 @@ abstract class AbstractView
      * 
      * @param string $key
      * @param mixed $value
-     * @return \Hynage\MVC\View
+     * @return \Hynage\MVC\View\AbstractView
      */
     public function setParam($key, $value)
     {

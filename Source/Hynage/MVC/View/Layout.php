@@ -8,7 +8,8 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\MVC\View;
-use Hynage\Data\DataContainer;
+use Hynage\Config,
+    Hynage\Data\DataContainer;
 
 class Layout extends AbstractView
 {
@@ -31,6 +32,21 @@ class Layout extends AbstractView
      * @var \Hynage\Data\DataContainer|null
      */
     protected $_metaDescription = null;
+    
+    
+    /**
+     * Create the view
+     * 
+     * @param \Hynage\Config $config
+     */
+    public function __construct(Config $config)
+    {
+        parent::__construct($config);
+        
+        foreach ($config->get('params') as $key => $value) {
+            $this->setParam($key, $value);
+        }
+    }
     
     
     /**

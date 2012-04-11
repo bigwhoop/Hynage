@@ -323,8 +323,6 @@ class Front
      */
     public function dispatch(Request $request = null, Response $response = null)
     {
-        $config = $this->getApplication()->getConfig();
-
         if ($request) {
             $this->setRequest($request);
         }
