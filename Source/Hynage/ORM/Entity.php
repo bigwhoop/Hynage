@@ -131,7 +131,7 @@ abstract class Entity implements ExportStrategy\Exportable
 
 
     /**
-     * @param $name
+     * @param string $name
      * @return Entity\Proxy
      * @throws \OutOfBoundsException
      */
@@ -147,7 +147,7 @@ abstract class Entity implements ExportStrategy\Exportable
 
     /**
      * @param string $name
-     * @return Entity
+     * @return Entity|EntityCollection
      */
     public function resolveProxy($name)
     {
