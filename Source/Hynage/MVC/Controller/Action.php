@@ -220,6 +220,15 @@ abstract class Action
         $url = $this->getRequest()->getHeader('REQUEST_URI', '/');
         return $this->redirect($url, 302, $exit);
     }
+    
+    
+    /**
+     * @return \Hynage\ORM\EntityManager
+     */
+    public function getEntityManager()
+    {
+        return $this->getFrontController()->getApplication()->bootstrap('Database');
+    }
 
 
     /**
