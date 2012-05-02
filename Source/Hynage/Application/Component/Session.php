@@ -49,7 +49,7 @@ class Session extends AbstractComponent
     public function getSession()
     {
         if (!$this->session) {
-            $this->session = new Data\Session();
+            $this->session = Data\Session::getInstance();
         }
 
         return $this->session;
