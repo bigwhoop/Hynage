@@ -69,12 +69,28 @@ class LESS2CSS
         $lessPath = $this->lessBasePath . "/$name.less";
         $cssPath  = $this->cssBasePath  . "/$name.css";
         $cssURL   = $this->cssBaseURL   . "/$name.css";
-
-        // No need to parse if .css is newer
-        if (file_exists($lessPath) && file_exists($cssPath) && filemtime($lessPath) < filemtime($cssPath)) {
-            return $cssURL;
+        
+        // Get paths of all less files in base directory
+        $lessPaths = array();
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->lessBasePath)) as $fileInfo) {
+            $lessPaths[] = $fileInfo->getPathname();
         }
-
+        
+        // No need to parse less file if .css is newer than all
+        // .less files in the base directory.
+        if (file_exists($lessPath) && file_exists($cssPath)) {
+            $newer = false;
+            foreach ($lessPaths as $path) {
+                if (filemtime($path) > filemtime($cssPath)) {
+                    $newer = true;
+                }
+            }
+            
+            if (!$newer) {
+                return $cssURL;
+            }
+        }
+        
         $parser = $this->getParser();
         $css = $parser->parseFile($lessPath);
 

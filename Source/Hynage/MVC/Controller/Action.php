@@ -157,13 +157,50 @@ abstract class Action
 
     /**
      * @param string $script
+     * @param bool   $includeViewParams
+     * @param string $contentVarName        Is only used when $includeViewParams is true
      * @return Action
      */
-    public function renderViewScriptAndSendJson($script)
+    public function renderViewScriptAndSendJson($script, $includeViewParams = false, $contentVarName = 'html')
     {
-        $content = $this->getView()->render($script, false);
+        $params = $content = $this->getView()->render($script, false);
         
-        return $this->sendJson($content, 200, false);
+        if ($includeViewParams) {
+            $params = $this->getView()->getParams();
+            $params[$contentVarName] = $content;
+        }
+        
+        return $this->sendJson($params, 200, $includeViewParams);
+    }
+    
+    
+    /**
+     * @param array $data
+     * @return Action
+     */
+    public function sendJsonSuccess(array $data)
+    {
+        return $this->sendJson(array(
+            'status' => 'ok',
+            'data'   => $data,
+        ));
+    }
+    
+    
+    /**
+     * @param string $message
+     * @param int $statusCode
+     * @return Action
+     */
+    public function sendJsonError($message, $statusCode = 500)
+    {
+        return $this->sendJson(
+            array(
+                'status'  => 'error',
+                'message' => $message,
+                'code'    => $statusCode,
+            )
+        );
     }
     
 
@@ -177,6 +214,8 @@ abstract class Action
     {
         if ($encode) {
             $content = json_encode($content);
+        } elseif (!is_scalar($content)) {
+            throw new \LogicException('Non-scalar variable must be (JSON) encoded manually.');
         }
         
     	$response = $this->getResponse();

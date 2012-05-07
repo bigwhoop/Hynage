@@ -269,7 +269,7 @@ class DatabasePersistence implements PersistenceInterface
 
             $value = $entity->getValue($field);
 
-            // Skip non-NOT-NULL-fields with NULL value
+            // Skip non-NOT-NULL-fields (=NULL-fields) with NULL value
             if (null === $value && !$field->isNotNull()) {
                 continue;
             }
@@ -278,7 +278,8 @@ class DatabasePersistence implements PersistenceInterface
             if (null === $value) {
                 $value = $field->getDefaultValue();
             }
-
+            
+            // Get a proper date string
             if ($value instanceof \DateTime) {
                 $value = $value->format('Y-m-d H:i:s');
             }

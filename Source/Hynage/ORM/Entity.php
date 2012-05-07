@@ -13,7 +13,7 @@ use Hynage,
     Hynage\ORM\Entity\Field,
     Hynage\ORM\Entity\Proxy;
 
-abstract class Entity implements ExportStrategy\Exportable
+abstract class Entity implements ExportStrategy\Exportable, \Serializable
 {
     /**
      * @bool
@@ -203,6 +203,15 @@ abstract class Entity implements ExportStrategy\Exportable
 
         return $this;
     }
+    
+    
+    /**
+     * @return array
+     */
+    public function toArray()
+    {
+        return $this->export(new ExportStrategy\ArrayStrategy());        
+    }
 
 
     /**
@@ -211,12 +220,8 @@ abstract class Entity implements ExportStrategy\Exportable
      * @param \Hynage\ORM\ExportStrategy\Exporting $strategy
      * @return mixed
      */
-    public function export(ExportStrategy\Exporting $strategy = null)
+    public function export(ExportStrategy\Exporting $strategy)
     {
-        if (!$strategy) {
-            $strategy = new ExportStrategy\ArrayStrategy();
-        }
-
         return $strategy->exportEntity($this);
     }
     
@@ -291,6 +296,35 @@ abstract class Entity implements ExportStrategy\Exportable
     {
         $this->isPersistent = (bool)$bool;
         return $this;
+    }
+    
+    
+    /**
+     * @return string
+     */
+    public function serialize()
+    {
+        return serialize($this->toArray());
+    }
+    
+    
+    /**
+     * @param string $data
+     */
+    public function unserialize($data)
+    {
+        $values = unserialize($data);
+        
+        foreach ($values as $key => $value) {
+            $this->$key = $value;
+        }
+        
+        foreach (static::getPrimaryKeyFields() as $pk) {
+            $pkValue = $this->getValue($pk);
+            if (!empty($pkValue)) {
+                $this->isPersistent = true;
+            }
+        }
     }
 
 
@@ -410,5 +444,15 @@ abstract class Entity implements ExportStrategy\Exportable
         }
 
         return $fields;
+    }
+    
+    
+    /**
+     * @static
+     * @return array
+     */
+    static public function getSerializableFields()
+    {
+        return static::getFieldDefinitions();
     }
 }

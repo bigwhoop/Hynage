@@ -10,30 +10,31 @@
 namespace Hynage\Data;
 
 class Session implements \ArrayAccess
-{
+{   
     /**
-     * @var bool
+     * @var array
      */
-    private $isStarted = false;
-
+    static protected $instances = array();
+    
     /**
-     * @var null|Session
+     * @var string
      */
-    static protected $instance = null;
+    protected $namespace = '';
 
 
     /**
      * @static
      * @return Session
      */
-    static public function getInstance()
+    final static public function getInstance()
     {
-        if (!static::$instance) {
-            $class = get_called_class();
-            static::$instance = new $class();
+        $class = get_called_class();
+        
+        if (!array_key_exists($class, self::$instances)) {
+            self::$instances[$class] = new $class();
         }
 
-        return static::$instance;
+        return self::$instances[$class];
     }
 
 
@@ -41,9 +42,24 @@ class Session implements \ArrayAccess
     {}
     
 
+    public function __destruct()
+    {
+        session_write_close();
+    }
+    
+
     private function __clone()
     {}
 
+    
+    /**
+     * @return bool
+     */
+    public function isStarted()
+    {
+        return isset($_SESSION);
+    }
+    
 
     /**
      * @throws \LogicException
@@ -53,7 +69,7 @@ class Session implements \ArrayAccess
      */
     public function start($sessionName = null, $sessionId = null)
     {
-        if ($this->isStarted) {
+        if ($this->isStarted()) {
             throw new \LogicException('Session already started.');
         }
 
@@ -71,11 +87,10 @@ class Session implements \ArrayAccess
 
         session_start();
 
-        $this->isStarted = true;
-
         return $this;
     }
-
+    
+    
     /**
      * @param int $days
      * @return Session
@@ -113,7 +128,7 @@ class Session implements \ArrayAccess
      */
     public function regenerateId()
     {
-        if (!$this->isStarted) {
+        if (!$this->isStarted()) {
             $this->start();
         }
 
@@ -124,12 +139,12 @@ class Session implements \ArrayAccess
 
 
     /**
-     * @param mixed $offset
+     * @param mixed $key
      * @return bool
      */
-    public function offsetExists($offset)
+    public function offsetExists($key)
     {
-        return $this->has($offset);
+        return $this->has($key);
     }
 
 
@@ -139,10 +154,11 @@ class Session implements \ArrayAccess
      */
     public function has($key)
     {
-        if (!$this->isStarted) {
+        if (!$this->isStarted()) {
             $this->start();
         }
-
+        
+        $key = $this->normalizeKey($key);
         return array_key_exists($key, $_SESSION);
     }
 
@@ -164,25 +180,26 @@ class Session implements \ArrayAccess
      */
     public function get($key)
     {
-        if (!$this->isStarted) {
+        if (!$this->isStarted()) {
             $this->start();
         }
-
+        
         if (!$this->offsetExists($key)) {
             throw new \OutOfBoundsException('Invalid key. No data set.');
         }
 
+        $key = $this->normalizeKey($key);
         return $_SESSION[$key];
     }
 
 
     /**
-     * @param mixed $offset
+     * @param mixed $key
      * @param mixed $value
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($key, $value)
     {
-        $this->set($offset, $value);
+        $this->set($key, $value);
     }
 
 
@@ -193,10 +210,11 @@ class Session implements \ArrayAccess
      */
     public function set($key, $value)
     {
-        if (!$this->isStarted) {
+        if (!$this->isStarted()) {
             $this->start();
         }
-
+        
+        $key = $this->normalizeKey($key);
         $_SESSION[$key] = $value;
 
         return $this;
@@ -204,16 +222,37 @@ class Session implements \ArrayAccess
 
 
     /**
-     * @param mixed $offset
+     * @param mixed $key
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($key)
     {
-        if (!$this->isStarted) {
+        $this->remove($key);
+    }
+    
+    
+    /**
+     * @param mixed $key
+     * @return Session
+     */
+    public function remove($key)
+    {
+        if (!$this->isStarted()) {
             $this->start();
         }
-
-        if ($this->offsetExists($offset)) {
-            unset($_SESSION[$offset]);
-        }
+        
+        $key = $this->normalizeKey($key);
+        unset($_SESSION[$key]);
+        
+        return $this;
+    }
+    
+    
+    /**
+     * @param mixed $key
+     * @return string
+     */
+    private function normalizeKey($key)
+    {
+        return '_' . $this->namespace . '_' . $key;
     }
 }

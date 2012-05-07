@@ -84,6 +84,15 @@ abstract class AbstractView
         
         return $this;
     }
+    
+    
+    /**
+     * @return array
+     */
+    public function getParams()
+    {
+        return $this->_params;
+    }
 
 
     /**

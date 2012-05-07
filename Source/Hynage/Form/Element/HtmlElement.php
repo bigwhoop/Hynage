@@ -241,6 +241,12 @@ class HtmlElement implements ElementInterface
     {
         $value = $this->getValue();
 
+        foreach ($this->_filters as $filter) {
+            $value = $filter->filter($value);
+        }
+        
+        $this->setValue($value);
+        
         $this->clearErrors();
 
         foreach ($this->_validators as $validator) {

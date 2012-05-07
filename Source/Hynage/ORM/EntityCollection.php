@@ -34,6 +34,16 @@ class EntityCollection extends Generic implements ExportStrategy\Exportable
 
         return $this->get(array_rand($this->data), $default);
     }
+    
+    
+    /**
+     * @return EntityCollection
+     */
+    public function randomize()
+    {
+        shuffle($this->data);
+        return $this;
+    }
 
 
     /**
@@ -48,6 +58,15 @@ class EntityCollection extends Generic implements ExportStrategy\Exportable
 
         return array_pop($this->data);
     }
+    
+    
+    /**
+     * @return array
+     */
+    public function toArray()
+    {
+        return $this->export(new ExportStrategy\ArrayStrategy());
+    }
 
 
     /**
@@ -56,12 +75,8 @@ class EntityCollection extends Generic implements ExportStrategy\Exportable
      * @param \Hynage\ORM\ExportStrategy\Exporting $strategy
      * @return mixed
      */
-    public function export(ExportStrategy\Exporting $strategy = null)
+    public function export(ExportStrategy\Exporting $strategy)
     {
-        if (!$strategy) {
-            $strategy = new ExportStrategy\ArrayStrategy();
-        }
-
         return $strategy->exportCollection($this);
     }
 

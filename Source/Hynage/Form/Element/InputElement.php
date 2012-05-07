@@ -14,6 +14,7 @@ class InputElement extends HtmlElement
     protected function _renderInputElement($type)
     {
         $attribs = $this->getAttributes()->toArray();
+        $attribs = array_map('htmlentities', $attribs);
         $attribs['name']  = $this->getName();
         $attribs['id']    = $this->getId();
         $attribs['value'] = htmlentities($this->getValue(), ENT_COMPAT, 'utf-8');

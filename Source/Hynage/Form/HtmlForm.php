@@ -180,7 +180,7 @@ class HtmlForm
         ?>
 
         <?php if (count($this->getErrors())): ?>
-            <div>
+            <div class="form-errors">
                 <p><?php echo $this->_('The following errors occurred:'); ?></p>
                 <ul>
                     <?php foreach ($this->getErrors() as $error): ?>
