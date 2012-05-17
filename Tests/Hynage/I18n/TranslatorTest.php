@@ -12,12 +12,40 @@ use Hynage\I18n\Translator;
 
 class TranslatorTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var null|Translator
+     */
+    private $translator = null;
+    
+    
+    public function setUp()
+    {
+        $translator = Translator::getInstance();
+        
+        $translator->setTranslation('de', array('hello' => 'hallo'));
+        $translator->setTranslation('fr', array('hello' => 'salu'));
+        
+        $this->translator = $translator;
+    }
+    
+    
     public function testReplacement()
     {
-        $translator = new Translator();
-
-        $this->assertEquals('abc', $translator->translate('abc'));
-        $this->assertEquals('abc', $translator->translate('a%sc', 'b'));
-        $this->assertEquals('abc1', $translator->translate('a%sc%d', 'b', 1));
+        $this->assertEquals('abc', $this->translator->translate('abc'));
+        $this->assertEquals('abc', $this->translator->translate('a%sc', 'b'));
+        $this->assertEquals('abc1', $this->translator->translate('a%sc%d', 'b', 1));
+    }
+    
+    
+    public function testDefaultLanguage()
+    {
+        $this->assertEquals('hallo', $this->translator->translate('hello'));
+    }
+    
+    
+    public function testSpecificLanguage()
+    {
+        $this->translator->setCurrentLanguage('fr');
+        $this->assertEquals('salu', $this->translator->translate('hello'));
     }
 }
