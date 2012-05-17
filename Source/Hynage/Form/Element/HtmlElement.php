@@ -8,32 +8,32 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\Form\Element;
-use Hynage\Config as Config;
-use Hynage\Validator\ValidatorInterface as ValidatorInterface;
-use Hynage\Filter\FilterInterface as FilterInterface;
-
+use Hynage\Config as Config,
+    Hynage\Validator\ValidatorInterface as ValidatorInterface,
+    Hynage\Filter\FilterInterface as FilterInterface,
+    Hynage\I18n\Translator;
 
 class HtmlElement implements ElementInterface
 {
     /**
      * @var string
      */
-    protected $_name;
+    protected $_name = '';
     
     /**
      * @var string
      */
-    protected $_id;
+    protected $_id = '';
 
     /**
      * @var string
      */
-    protected $_label;
+    protected $_label = '';
 
     /**
      * @var string
      */
-    protected $_value;
+    protected $_value = '';
 
     /**
      * @var \Hynage\Config
@@ -48,12 +48,17 @@ class HtmlElement implements ElementInterface
     /**
      * @var \SplObjectStorage
      */
-    protected $_filters    = null;
+    protected $_filters = null;
 
     /**
      * @var array
      */
-    protected $_errors     = array();
+    protected $_errors = array();
+
+    /**
+     * @var Translator|null
+     */
+    private $translator = null;
     
 
     /**
@@ -250,6 +255,8 @@ class HtmlElement implements ElementInterface
         $this->clearErrors();
 
         foreach ($this->_validators as $validator) {
+            $validator->setTranslator($this->translator);
+            
             if (!$validator->isValid($value)) {
                 $this->addError($validator->getError());
             }
@@ -286,6 +293,17 @@ class HtmlElement implements ElementInterface
     public function getErrors()
     {
         return $this->_errors;
+    }
+    
+    
+    /**
+     * @param \Hynage\I18n\Translator $translator
+     * @return HtmlElement
+     */
+    public function setTranslator(Translator $translator)
+    {
+        $this->translator = $translator;
+        return $this;
     }
 
 

@@ -8,11 +8,12 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\Form;
-use Hynage\Config as Config;
-use Hynage\Filter;
-use Hynage\HTTP\Request as Request;
-use Hynage\Form\Element\ElementInterface as ElementInterface;
-use Hynage\MVC\View\View;
+use Hynage\Config as Config,
+    Hynage\Filter,
+    Hynage\HTTP\Request as Request,
+    Hynage\Form\Element\ElementInterface as ElementInterface,
+    Hynage\MVC\View\View,
+    Hynage\I18n\Translator;
 
 
 class HtmlForm
@@ -23,7 +24,6 @@ class HtmlForm
     const ENCTYPE_URLENCODED = 'application/x-www-form-urlencoded';
     const ENCTYPE_MULTIPART  = 'multipart/form-data';
     const ENCTYPE_PLAINTEXT  = 'text/plain';
-
 
     /**
      * @var string
@@ -49,6 +49,11 @@ class HtmlForm
      * @var array
      */
     protected $_errors = array();
+
+    /**
+     * @var Translator|null
+     */
+    private $translator = null;
 
 
     /**
@@ -278,6 +283,8 @@ class HtmlForm
 
         // Validate
         foreach ($this->_elements as $element) {
+            $element->setTranslator($this->translator);
+            
             if (!$element->isValid()) {
                 foreach ($element->getErrors() as $error) {
                     $this->addError("<strong>{$element->getLabel()}:</strong> $error");
@@ -287,22 +294,39 @@ class HtmlForm
 
         return 0 == count($this->getErrors());
     }
+    
+    
+    /**
+     * @param \Hynage\I18n\Translator $translator
+     * @return HtmlForm
+     */
+    public function setTranslator(Translator $translator)
+    {
+        $this->translator = $translator;
+        return $this;
+    }
 
 
     /**
      * Returns the translation of the given string
      *
-     * @param string $string
-     * @param mixed Arguments for printf
+     * @param string $string [more arguments for printf-like placeholders)
      * @return string
      */
     public function _($string)
     {
+        if (!$this->translator) {
+            throw new \RuntimeException('No translator available.'); 
+        }
+        
         $args = func_get_args();
-        return call_user_func_array(array('\Hynage\I18n\Translator', 'translate'), $args);
+        return call_user_func_array(array($this->translator, 'translate'), $args);
     }
 
 
+    /**
+     * @return string
+     */
     public function __toString()
     {
         return $this->render();

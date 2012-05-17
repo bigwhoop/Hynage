@@ -8,11 +8,32 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\Application\Component;
+use Hynage\I18n\Translator;
 
 class I18n extends AbstractComponent
 {
+    /**
+     * @var \Hynage\I18n\Translator|null
+     */
+    private $translator = null;
+    
+    
+    /**
+     * @param \Hynage\I18n\Translator|null $translator
+     */
+    public function __construct(Translator $translator = null)
+    {
+        $this->translator = $translator;
+    }
+    
+    
+    /**
+     * @return \Hynage\I18n\Translator|null
+     */
     public function bootstrap()
     {
         mb_internal_encoding('utf-8');
+        
+        return $this->translator;
     }
 }

@@ -11,7 +11,8 @@ namespace Hynage\MVC\Controller;
 use Hynage\MVC\View\View,
     Hynage\HTTP\Request,
     Hynage\HTTP\Response,
-    Hynage\MVC\Controller\Front as FrontController;
+    Hynage\MVC\Controller\Front as FrontController,
+    Hynage\I18n\Translator;
 
 abstract class Action
 {
@@ -34,12 +35,18 @@ abstract class Action
      * @var \Hynage\MVC\Controller\Front
      */
     protected $_front = null;
+
+    /**
+     * @var Translator|null
+     */
+    protected $translator = null;
     
     
     /**
-     * Create a new controller object
-     * 
+     * @param Front $front
      * @param \Hynage\MVC\View\View $view
+     * @param \Hynage\HTTP\Request $request
+     * @param \Hynage\HTTP\Response $response
      */
     public function __construct(FrontController $front, View $view, Request $request, Response $response)
     {
@@ -178,7 +185,7 @@ abstract class Action
      * @param array $data
      * @return Action
      */
-    public function sendJsonSuccess(array $data)
+    public function sendJsonSuccess(array $data = array())
     {
         return $this->sendJson(array(
             'status' => 'ok',
@@ -268,17 +275,32 @@ abstract class Action
     {
         return $this->getFrontController()->getApplication()->bootstrap('Database');
     }
+    
+    
+    /**
+     * @param \Hynage\I18n\Translator $translator
+     * @return Action
+     */
+    public function setTranslator(Translator $translator)
+    {
+        $this->translator = $translator;
+        return $this;
+    }
 
 
     /**
-     * Translation placeholder
+     * Returns the translation of the given string
      *
-     * @param string $string
-     * @return mixed
+     * @param string $string [more arguments for printf-like placeholders)
+     * @return string
      */
     public function _($string)
     {
+        if (!$this->translator) {
+            throw new \RuntimeException('No translator available.'); 
+        }
+        
         $args = func_get_args();
-        return call_user_func_array(array('\Hynage\I18n\Translator', 'translate'), $args);
+        return call_user_func_array(array($this->translator, 'translate'), $args);
     }
 }

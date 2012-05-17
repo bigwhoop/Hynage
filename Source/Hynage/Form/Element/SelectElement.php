@@ -11,6 +11,10 @@ namespace Hynage\Form\Element;
 
 class SelectElement extends MultiElement
 {
+    /**
+     * @param bool $bool
+     * @return SelectElement
+     */
     public function setMultiSelectable($bool)
     {
         if ($bool) {
@@ -23,6 +27,9 @@ class SelectElement extends MultiElement
     }
 
 
+    /**
+     * @return bool
+     */
     public function isMultiSelectable()
     {
         return $this->getAttributes()->has('multiple');

@@ -9,16 +9,10 @@
  */
 namespace Hynage\Application\Component;
 use Hynage\Config,
-    Hynage\MVC\Controller\Front,
-    Hynage\Application\ApplicationInterface;
+    Hynage\MVC\Controller\Front;
 
 class FrontController extends AbstractComponent
 {
-    /**
-     * @var \Hynage\Application\ApplicationInterface
-     */
-    private $application = null;
-
     /**
      * @var \Hynage\Config|null
      */
@@ -26,17 +20,15 @@ class FrontController extends AbstractComponent
 
 
     /**
-     * @param \Hynage\Application\ApplicationInterface $application
      * @param \Hynage\Config|null $config
      */
-    public function __construct(ApplicationInterface $application, Config $config = null)
+    public function __construct(Config $config = null)
     {
         if (!$config) {
             $config = new Config();
         }
-
-        $this->application = $application;
-        $this->config      = $config;
+        
+        $this->config = $config;
     }
 
 
@@ -45,9 +37,12 @@ class FrontController extends AbstractComponent
      */
     public function bootstrap()
     {
+        $translator = $this->application->bootstrap('i18n');
+        
         $front = new Front($this->application);
         $front->setController($this->config->get('defaults.controller', 'index'))
-              ->setAction($this->config->get('defaults.action', 'index'));
+              ->setAction($this->config->get('defaults.action', 'index'))
+              ->setTranslator($translator);
 
         return $front;
     }

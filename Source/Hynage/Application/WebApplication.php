@@ -22,8 +22,8 @@ class WebApplication extends AbstractApplication
         $pathConstants    = new Component\PathConstants();
         $database         = new Component\Database($config->get('database'));
         $session          = new Component\Session($config->get('session.lifetime', 0));
-        $frontController  = new Component\FrontController($this, $config->get('frontController'));
-        $i18n             = new Component\I18n();
+        $frontController  = new Component\FrontController($config->get('frontController'));
+        $i18n             = new Component\I18n($config->get('translator'));
 
         $autoloader = new Component\Autoloader();
         foreach ($config->get('autoloaders', new Config()) as $userAutoloader) {
@@ -49,7 +49,7 @@ class WebApplication extends AbstractApplication
              ->setComponent('phpSettings', $phpSettings)
              ->setComponent('database', $database)
              ->setComponent('i18n', $i18n)
-             ->setComponent('frontController', $frontController, array('database', 'autoloader', 'includePath', 'session', 'errorHandler', 'exceptionHandler'));
+             ->setComponent('frontController', $frontController, array('database', 'autoloader', 'includePath', 'session', 'errorHandler', 'exceptionHandler', 'i18n'));
     }
 
 

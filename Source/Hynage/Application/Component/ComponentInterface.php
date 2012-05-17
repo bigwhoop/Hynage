@@ -8,9 +8,15 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\Application\Component;
-use Hynage\Config;
+use Hynage\Config,
+    Hynage\Application\ApplicationInterface;
 
 interface ComponentInterface
 {
     public function bootstrap();
+    
+    /**
+     * @param \Hynage\Application\ApplicationInterface $application
+     */
+    public function setApplication(ApplicationInterface $application);
 }

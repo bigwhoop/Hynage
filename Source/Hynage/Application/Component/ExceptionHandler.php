@@ -26,7 +26,7 @@ class ExceptionHandler extends AbstractComponent
 
 
     /**
-     * @param \Hynage\Application\WebApplication $webApp|null
+     * @param \Hynage\Application\WebApplication|null $webApp
      * @param \Hynage\Config|null $config
      */
     public function __construct(WebApplication $webApp = null, Config $config = null)

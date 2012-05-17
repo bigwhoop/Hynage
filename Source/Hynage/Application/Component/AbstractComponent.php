@@ -8,8 +8,21 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\Application\Component;
+use Hynage\Application\ApplicationInterface;
 
 abstract class AbstractComponent implements ComponentInterface
 {
+    /**
+     * @var null|\Hynage\Application\ApplicationInterface
+     */
+    protected $application = null;
     
+    
+    /**
+     * @param \Hynage\Application\ApplicationInterface $application
+     */
+    public function setApplication(ApplicationInterface $application)
+    {
+        $this->application = $application;
+    }
 }

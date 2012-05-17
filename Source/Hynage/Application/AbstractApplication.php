@@ -223,6 +223,7 @@ abstract class AbstractApplication implements ApplicationInterface
             }
 
             // Bootstrap component
+            $component->setApplication($this);
             $this->preBootstrap($component);
             $this->_componentResults[$componentName] = $component->bootstrap();
             $this->postBootstrap($component);
@@ -254,6 +255,5 @@ abstract class AbstractApplication implements ApplicationInterface
      * @param Component\ComponentInterface $component
      */
     public function postBootstrap(ComponentInterface $component)
-    {
-    }
+    {}
 }
