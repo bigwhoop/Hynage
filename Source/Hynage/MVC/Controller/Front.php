@@ -13,8 +13,7 @@ use Hynage\Application\ApplicationInterface as App,
     Hynage\MVC\View\View,
     Hynage\MVC\View\Layout,
     Hynage\HTTP\Request,
-    Hynage\HTTP\Response,
-    Hynage\I18n\Translator;
+    Hynage\HTTP\Response;
 
 class Front
 {
@@ -57,11 +56,6 @@ class Front
      * @var bool
      */
     protected $_renderLayout = true;
-    
-    /**
-     * @var Translator|null
-     */
-    private $translator = null;
 
 
     /**
@@ -321,17 +315,6 @@ class Front
     
     
     /**
-     * @param \Hynage\I18n\Translator $translator
-     * @return Front
-     */
-    public function setTranslator(Translator $translator)
-    {
-        $this->translator = $translator;
-        return $this;
-    }
-    
-    
-    /**
      * Dispatch a request and send the response
      * 
      * @param \Hynage\HTTP\Request|null $request
@@ -395,7 +378,6 @@ class Front
         
         // Get view
         $view = $this->getView();
-        $view->setTranslator($this->translator);
 
         // Get response
         $response = $this->getResponse();
@@ -407,8 +389,6 @@ class Front
         if (!in_array('Hynage\\MVC\\Controller\\Action', class_parents($controllerClass))) {
             throw new Exception('Controller class "' . $controllerClass . '" must extend the base action controller "\Hynage\MVC\Controller\Action".');
         }
-        
-        $controller->setTranslator($this->translator);
 
         $action = $this->getActionMethod();
         
@@ -425,7 +405,6 @@ class Front
         // Prepare the layout
         if ($this->_renderLayout) {
             $layout = $this->getLayout();
-            $layout->setTranslator($this->translator);
 
             // Wrap the layout around the content
             $layout->setContent($response->getBody());

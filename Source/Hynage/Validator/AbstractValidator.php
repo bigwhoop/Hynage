@@ -8,7 +8,6 @@
  * file that was distributed with this source code.
  */
 namespace Hynage\Validator;
-use Hynage\I18n\Translator;
 
 abstract class AbstractValidator implements ValidatorInterface
 {
@@ -16,11 +15,6 @@ abstract class AbstractValidator implements ValidatorInterface
      * @var string
      */
     protected $_error = '';
-
-    /**
-     * @var Translator|null
-     */
-    private $translator = null;
 
     
     /**
@@ -41,17 +35,6 @@ abstract class AbstractValidator implements ValidatorInterface
     {
         return $this->_error;
     }
-    
-    
-    /**
-     * @param \Hynage\I18n\Translator $translator
-     * @return AbstractValidator
-     */
-    public function setTranslator(Translator $translator)
-    {
-        $this->translator = $translator;
-        return $this;
-    }
 
 
     /**
@@ -62,11 +45,8 @@ abstract class AbstractValidator implements ValidatorInterface
      */
     public function _($string)
     {
-        if (!$this->translator) {
-            throw new \RuntimeException('No translator available.'); 
-        }
-        
         $args = func_get_args();
-        return call_user_func_array(array($this->translator, 'translate'), $args);
+        $translator = \Hynage\I18n\Translator::getInstance();
+        return call_user_func_array(array($translator, 'translate'), $args);
     }
 }

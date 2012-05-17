@@ -37,12 +37,9 @@ class FrontController extends AbstractComponent
      */
     public function bootstrap()
     {
-        $translator = $this->application->bootstrap('i18n');
-        
         $front = new Front($this->application);
         $front->setController($this->config->get('defaults.controller', 'index'))
-              ->setAction($this->config->get('defaults.action', 'index'))
-              ->setTranslator($translator);
+              ->setAction($this->config->get('defaults.action', 'index'));
 
         return $front;
     }

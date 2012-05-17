@@ -14,6 +14,11 @@ class Translator
     /**
      * @var array
      */
+    static private $contexts = array();
+    
+    /**
+     * @var array
+     */
     private $strings = array();
     
     /**
@@ -21,6 +26,25 @@ class Translator
      */
     private $currentLanguage = null;
     
+    
+    /**
+     * @static
+     * @param null|string $context
+     * @return Translator
+     */
+    static public function getInstance($context = null)
+    {
+        $context = (string)$context;
+        
+        if (!array_key_exists($context, self::$contexts)) {
+            self::$contexts[$context] = new self();
+        }
+        
+        return self::$contexts[$context];
+    }
+    
+    private function __construct() {}
+    private function __clone() {}
     
     /**
      * @param string $language

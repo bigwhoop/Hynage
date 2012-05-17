@@ -11,8 +11,7 @@ namespace Hynage\MVC\Controller;
 use Hynage\MVC\View\View,
     Hynage\HTTP\Request,
     Hynage\HTTP\Response,
-    Hynage\MVC\Controller\Front as FrontController,
-    Hynage\I18n\Translator;
+    Hynage\MVC\Controller\Front as FrontController;
 
 abstract class Action
 {
@@ -35,11 +34,6 @@ abstract class Action
      * @var \Hynage\MVC\Controller\Front
      */
     protected $_front = null;
-
-    /**
-     * @var Translator|null
-     */
-    protected $translator = null;
     
     
     /**
@@ -275,17 +269,6 @@ abstract class Action
     {
         return $this->getFrontController()->getApplication()->bootstrap('Database');
     }
-    
-    
-    /**
-     * @param \Hynage\I18n\Translator $translator
-     * @return Action
-     */
-    public function setTranslator(Translator $translator)
-    {
-        $this->translator = $translator;
-        return $this;
-    }
 
 
     /**
@@ -296,11 +279,8 @@ abstract class Action
      */
     public function _($string)
     {
-        if (!$this->translator) {
-            throw new \RuntimeException('No translator available.'); 
-        }
-        
         $args = func_get_args();
-        return call_user_func_array(array($this->translator, 'translate'), $args);
+        $translator = \Hynage\I18n\Translator::getInstance();
+        return call_user_func_array(array($translator, 'translate'), $args);
     }
 }

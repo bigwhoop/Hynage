@@ -10,8 +10,7 @@
 namespace Hynage\Form\Element;
 use Hynage\Config as Config,
     Hynage\Validator\ValidatorInterface as ValidatorInterface,
-    Hynage\Filter\FilterInterface as FilterInterface,
-    Hynage\I18n\Translator;
+    Hynage\Filter\FilterInterface as FilterInterface;
 
 class HtmlElement implements ElementInterface
 {
@@ -54,11 +53,6 @@ class HtmlElement implements ElementInterface
      * @var array
      */
     protected $_errors = array();
-
-    /**
-     * @var Translator|null
-     */
-    private $translator = null;
     
 
     /**
@@ -255,8 +249,6 @@ class HtmlElement implements ElementInterface
         $this->clearErrors();
 
         foreach ($this->_validators as $validator) {
-            $validator->setTranslator($this->translator);
-            
             if (!$validator->isValid($value)) {
                 $this->addError($validator->getError());
             }
@@ -293,17 +285,6 @@ class HtmlElement implements ElementInterface
     public function getErrors()
     {
         return $this->_errors;
-    }
-    
-    
-    /**
-     * @param \Hynage\I18n\Translator $translator
-     * @return HtmlElement
-     */
-    public function setTranslator(Translator $translator)
-    {
-        $this->translator = $translator;
-        return $this;
     }
 
 

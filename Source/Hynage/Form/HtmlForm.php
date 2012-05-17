@@ -12,8 +12,7 @@ use Hynage\Config as Config,
     Hynage\Filter,
     Hynage\HTTP\Request as Request,
     Hynage\Form\Element\ElementInterface as ElementInterface,
-    Hynage\MVC\View\View,
-    Hynage\I18n\Translator;
+    Hynage\MVC\View\View;
 
 
 class HtmlForm
@@ -49,11 +48,6 @@ class HtmlForm
      * @var array
      */
     protected $_errors = array();
-
-    /**
-     * @var Translator|null
-     */
-    private $translator = null;
 
 
     /**
@@ -283,8 +277,6 @@ class HtmlForm
 
         // Validate
         foreach ($this->_elements as $element) {
-            $element->setTranslator($this->translator);
-            
             if (!$element->isValid()) {
                 foreach ($element->getErrors() as $error) {
                     $this->addError("<strong>{$element->getLabel()}:</strong> $error");
@@ -293,17 +285,6 @@ class HtmlForm
         }
 
         return 0 == count($this->getErrors());
-    }
-    
-    
-    /**
-     * @param \Hynage\I18n\Translator $translator
-     * @return HtmlForm
-     */
-    public function setTranslator(Translator $translator)
-    {
-        $this->translator = $translator;
-        return $this;
     }
 
 
@@ -315,12 +296,9 @@ class HtmlForm
      */
     public function _($string)
     {
-        if (!$this->translator) {
-            throw new \RuntimeException('No translator available.'); 
-        }
-        
         $args = func_get_args();
-        return call_user_func_array(array($this->translator, 'translate'), $args);
+        $translator = \Hynage\I18n\Translator::getInstance();
+        return call_user_func_array(array($translator, 'translate'), $args);
     }
 
 

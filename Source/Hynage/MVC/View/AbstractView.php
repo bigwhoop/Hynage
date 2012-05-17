@@ -9,8 +9,7 @@
  */
 namespace Hynage\MVC\View;
 use Hynage\Config,
-    Hynage\MVC\Controller\Front,
-    Hynage\I18n\Translator;
+    Hynage\MVC\Controller\Front;
 
 abstract class AbstractView
 {
@@ -28,11 +27,6 @@ abstract class AbstractView
      * @var \Hynage\MVC\Controller\Front
      */
     protected $_frontController = null;
-
-    /**
-     * @var Translator|null
-     */
-    private $translator = null;
     
     
     /**
@@ -138,17 +132,6 @@ abstract class AbstractView
         return empty($value) ? $ifEmptyValue : $ifNotEmptyValue;
     }
     
-    
-    /**
-     * @param \Hynage\I18n\Translator $translator
-     * @return AbstractView
-     */
-    public function setTranslator(Translator $translator)
-    {
-        $this->translator = $translator;
-        return $this;
-    }
-
 
     /**
      * Returns the translation of the given string
@@ -158,12 +141,9 @@ abstract class AbstractView
      */
     public function _($string)
     {
-        if (!$this->translator) {
-            throw new \RuntimeException('No translator available.'); 
-        }
-        
         $args = func_get_args();
-        return call_user_func_array(array($this->translator, 'translate'), $args);
+        $translator = \Hynage\I18n\Translator::getInstance();
+        return call_user_func_array(array($translator, 'translate'), $args);
     }
     
     
