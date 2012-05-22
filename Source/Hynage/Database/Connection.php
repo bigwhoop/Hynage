@@ -59,6 +59,15 @@ class Connection
         return $this;
     }
 
+    
+    /**
+     * @return bool
+     */
+    public function hasTransactionStarted()
+    {
+        return $this->getAdapter()->inTransaction();
+    }
+    
 
     /**
      * @return \Hynage\Database\Connection

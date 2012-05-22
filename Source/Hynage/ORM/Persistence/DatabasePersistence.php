@@ -53,7 +53,46 @@ class DatabasePersistence implements PersistenceInterface
         return $this->connection;
     }
 
+    
+    /**
+     * @return DatabasePersistence
+     */
+    public function beginTransaction()
+    {
+        $this->connection->beginTransaction();
+        return $this;
+    }
+    
+    
+    /**
+     * @return bool
+     */
+    public function hasTransactionStarted()
+    {
+        return $this->connection->hasTransactionStarted();
+    }
 
+    
+    /**
+     * @return DatabasePersistence
+     */
+    public function rollBack()
+    {
+        $this->connection->rollBack();
+        return $this;
+    }
+
+    
+    /**
+     * @return DatabasePersistence
+     */
+    public function commit()
+    {
+        $this->connection->commit();
+        return $this;
+    }
+
+    
     /**
      * @param string $entityType
      * @param scalar|array $values

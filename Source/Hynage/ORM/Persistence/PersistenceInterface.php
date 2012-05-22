@@ -13,6 +13,11 @@ use Hynage\ORM\Entity,
 
 interface PersistenceInterface
 {
+    public function beginTransaction();
+    public function hasTransactionStarted();
+    public function rollBack();
+    public function commit();
+    
     public function store(Entity $entity);
     public function delete(Entity $entity);
     public function findOne($entityType, $pkValue);

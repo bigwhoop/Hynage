@@ -280,8 +280,14 @@ class EntityManager
     public function persist(Entity $entity)
     {
         $persisterName = $entity::getPersisterName();
-
-        $this->getPersister($persisterName)->store($entity);
+        $persister = $this->getPersister($persisterName);
+        
+        if (!$persister->hasTransactionStarted()) {
+            $persister->beginTransaction();
+        }
+        
+        $persister->store($entity);
+        
         $this->addEntity($entity);
 
         return $this;
@@ -295,9 +301,33 @@ class EntityManager
     public function delete(Entity $entity)
     {
         $persisterName = $entity::getPersisterName();
-
-        $this->getPersister($persisterName)->delete($entity);
+        $persister = $this->getPersister($persisterName);
+                
+        if (!$persister->hasTransactionStarted()) {
+            $persister->beginTransaction();
+        }
+        
+        $persister->delete($entity);
+        
         $this->removeEntity($entity);
+
+        return $this;
+    }
+
+
+    /**
+     * @param string|null $persisterName    If null, all persisters will be flushed
+     * @return \Hynage\ORM\EntityManager
+     */
+    public function flush($persisterName = null)
+    {
+        if ($persisterName !== null) {
+            $this->getPersister($persisterName)->commit();
+        } else {
+            foreach ($this->persisters as $persister) {
+                $persister->commit();
+            }
+        }
 
         return $this;
     }
