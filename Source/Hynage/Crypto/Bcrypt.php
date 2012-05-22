@@ -34,7 +34,7 @@ class Bcrypt
      * @throws \Hynage\Crypto\HashingFailedException
      * @param string $plain
      * @param int $rounds
-     * @return string|false
+     * @return string
      */
     public function hashPassword($plain, $rounds)
     {
@@ -64,7 +64,7 @@ class Bcrypt
      * @param $rounds
      * @return string
      */
-    private function generateSalt($rounds)
+    public function generateSalt($rounds)
     {
         if ($rounds < 4 || $rounds > 31) {
             throw new \OutOfBoundsException('The rounds parameter must be between 4 and 31.');
