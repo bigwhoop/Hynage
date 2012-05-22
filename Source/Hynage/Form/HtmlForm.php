@@ -240,6 +240,10 @@ class HtmlForm
         $a = array();
 
         foreach ($this->getElements() as $e) {
+            if ($e instanceof Element\SubmitElement) {
+                continue;
+            }
+            
             $a[$e->getName()] = $e->getValue();
         }
 
