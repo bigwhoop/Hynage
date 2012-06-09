@@ -11,7 +11,6 @@ namespace Hynage\ORM\Persistence;
 use Hynage\ORM\Entity,
     Hynage\ORM\EntityManager,
     Hynage\ORM\EntityCollection,
-    Hynage\ORM\EntityProxyCollection,
     Hynage\ORM\Entity\Field,
     Hynage\ORM\Entity\Proxy,
     Hynage\Database\Connection,
@@ -297,7 +296,7 @@ class DatabasePersistence implements PersistenceInterface
 
         $tableName = $entity::getEntityType();
 
-        $values = array();
+        $params = array();
         $autoIncrementField = null;
 
         foreach ($entity::getFieldDefinitions() as $field) {
@@ -323,14 +322,19 @@ class DatabasePersistence implements PersistenceInterface
                 $value = $value->format('Y-m-d H:i:s');
             }
 
-            $values[$field->getName()] = $value;
+            $params[] = (object)array(
+                'value'       => $value,
+                'key'         => $field->getName(),
+                'placeholder' => $field->getPlaceholder(),
+            );
         }
 
         // Update
         if ($entity->isPersistent()) {
-            $placeholders = array();
-            foreach (array_keys($values) as $field) {
-                $placeholders[] = "`$field` = ?";
+            $placeholders = $values = array();
+            foreach ($params as $param) {
+                $placeholders[] = sprintf('`%s` = %s', $param->key, $param->placeholder);
+                $values = array_merge($values, (array)$param->value);
             }
 
             $sql = sprintf(
@@ -341,26 +345,31 @@ class DatabasePersistence implements PersistenceInterface
             );
 
             foreach ($entity::getPrimaryKeyFields() as $pk) {
-                $values[$pk->getName()] = $entity->getValue($pk);
+                $values[] = $entity->getValue($pk);
             }
-
+            
             $stmt = $db->prepare($sql);
-            $stmt->execute(array_values($values));
+            $stmt->execute($values);
         }
 
         // Insert
         else {
-            $placeholders = array_pad(array(), count($values), '?');
+            $keys = $placeholders = $values = array();
+            foreach ($params as $param) {
+                $keys[] = "`{$param->key}`";
+                $placeholders[] = $param->placeholder;
+                $values = array_merge($values, (array)$param->value);
+            }
 
             $sql = sprintf(
                 "INSERT INTO `%s` (%s) VALUES (%s)",
                 $tableName,
-                '`' . join('`, `', array_keys($values)) . '`',
+                join(', ', $keys),
                 join(', ', $placeholders)
             );
-
+            
             $stmt = $db->prepare($sql);
-            $stmt->execute(array_values($values));
+            $stmt->execute($values);
 
             if (null !== $autoIncrementField) {
                 $entity->setValue($autoIncrementField, $db->getAdapter()->lastInsertId());

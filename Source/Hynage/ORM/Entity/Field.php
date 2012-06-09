@@ -49,27 +49,51 @@ class Field
     {
         $this->_name       = $name;
         $this->_property   = $property;
-        $this->_type       = $type;
+        $this->_type       = strtoupper($type);
         $this->_length     = $length;
         $this->_attributes = $attributes;
     }
     
     
+    /**
+     * @return string
+     */
     public function getName()
     {
         return $this->_name;
     }
     
     
+    /**
+     * @return string
+     */
     public function getProperty()
     {
         return $this->_property;
     }
     
     
+    /**
+     * @return string
+     */
     public function getType()
     {
         return $this->_type;
+    }
+    
+    
+    /**
+     * @return string
+     */
+    public function getPlaceholder()
+    {   
+        switch ($this->_type) {
+            case 'POINT':
+                return 'Point(?, ?)';
+            
+            default:
+                return '?';
+        }
     }
     
     
