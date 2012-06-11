@@ -28,6 +28,21 @@ class SelectElement extends MultiElement
 
 
     /**
+     * @return array|mixed
+     */
+    public function getValue()
+    {
+        $value = parent::getValue();
+        
+        if ($this->isMultiSelectable()) {
+            return (array)$value;
+        }
+        
+        return $value;
+    }
+
+
+    /**
      * @return bool
      */
     public function isMultiSelectable()
