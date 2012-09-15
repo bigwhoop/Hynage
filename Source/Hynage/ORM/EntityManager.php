@@ -325,7 +325,9 @@ class EntityManager
             $this->getPersister($persisterName)->commit();
         } else {
             foreach ($this->persisters as $persister) {
-                $persister->commit();
+                if ($persister->hasTransactionStarted()) {
+                    $persister->commit();
+                }
             }
         }
 
