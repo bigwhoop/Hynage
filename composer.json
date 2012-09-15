@@ -18,5 +18,6 @@
   },
   "autoload": {
     "psr-0": {"Hynage": "Source/"}
-  }
+  },
+  "minimum-stability" : "dev"
 }
