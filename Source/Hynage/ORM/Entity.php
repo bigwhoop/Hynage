@@ -147,6 +147,19 @@ abstract class Entity implements ExportStrategy\Exportable, \Serializable
 
     /**
      * @param string $name
+     * @return Entity
+     */
+    public function clearProxy($name)
+    {
+        $this->getProxy($name)->clear();
+        $this->$name = null;
+        
+        return $this;
+    }
+
+
+    /**
+     * @param string $name
      * @return Entity|EntityCollection
      */
     public function resolveProxy($name)

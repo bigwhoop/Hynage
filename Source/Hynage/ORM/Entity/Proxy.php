@@ -71,6 +71,16 @@ class Proxy
         $this->foreignFieldName = $foreignFieldName;
         $this->type             = $type;
     }
+
+
+    /**
+     * @return Proxy
+     */
+    public function clear()
+    {
+        $this->data = null;
+        return $this;
+    }
     
 
     /**
